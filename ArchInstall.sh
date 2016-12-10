@@ -62,20 +62,6 @@ request_new_user_password="yes"
 #########################################################################################################
 # PROCESSING - DO NOT CHANGE ANYTHING BELOW THIS LINE
 #########################################################################################################
-
-#Variables
-architecture=$(uname -m)
-
-#Download Library File
-sudo wget https://raw.githubusercontent.com/Eriksh/ArchInstall/develop/ArchInstall_Library.sh && sudo chmod +x ArchInstall_Library.sh
-	
-#Add External Source
-source ./ArchInstall_Library.sh
-
-	
-#Add External Source
-source ./ArchInstall_Library.sh
-
 #User Instructions
 echo "Before running program please ensure you have the following:"
 echo " * Edit ArchInstall.sh to the way you want it configured"
@@ -84,6 +70,12 @@ echo ""
 echo "To exit out of install please press CTRL-C"
 read -p "Otherwise press enter to continue installation"
 
+#Download Library File
+wget https://raw.githubusercontent.com/Eriksh/ArchInstall/develop/ArchInstall_Library.sh && chmod +x ArchInstall_Library.sh
+	
+#Add External Source
+source ./ArchInstall_Library.sh
+
 #Update system clock
 timedatectl set-ntp true
 
@@ -91,19 +83,19 @@ timedatectl set-ntp true
 Partition_and_Format_Disk
 
 #Install OS
-Install_Arch "\${OS_packages}"
+#Install_Arch "\${OS_packages}"
 
 #Configure_Arch
-Configure_Arch $OS_name $locale $timezone_region $timezone_city $request_new_root_password
+#Configure_Arch $OS_name $locale $timezone_region $timezone_city $request_new_root_password
 
 #Configure_Pacman
-Configure_Pacman "\${mirrorlist_country}" "\${mirrorlist_protocol}" "\${rank_mirrorlist_by}" "\${repository}"
+#Configure_Pacman "\${mirrorlist_country}" "\${mirrorlist_protocol}" "\${rank_mirrorlist_by}" "\${repository}"
 
 #Install Bootloader
-Bootloader
+#Bootloader
 
 #Secure OS
-Secure_OS $install_antivirus $install_firewall $install_firejail
+#Secure_OS $install_antivirus $install_firewall $install_firejail
 
 #Create Users
-Create_Users $usernames $sudo_update_users $request_new_user_password
+#Create_Users $usernames $sudo_update_users $request_new_user_password

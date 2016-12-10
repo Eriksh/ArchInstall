@@ -83,7 +83,7 @@ timedatectl set-ntp true
 Partition_and_Format_Disk
 
 #Install OS
-#Install_Arch "\${OS_packages}"
+Install_Arch "\${OS_packages}"
 
 #Configure_Arch
 #Configure_Arch $OS_name $locale $timezone_region $timezone_city $request_new_root_password

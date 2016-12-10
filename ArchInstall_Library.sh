@@ -12,8 +12,8 @@ Partition_and_Format_Disk ()
 
 	#format partitions
 	mkfs.ext4 /dev/sda1
-	mkfs.ext4 /dev/sda2
-
+	mkfs.ext4 /def/sda2
+	
 	#mount filesystem
 	mount /dev/sda1 /mnt
 	mkdir /mnt/boot

@@ -6,7 +6,7 @@
 Partition_and_Format_Disk ()
 {
 	#wipe and create partitions
-	echo -e "o\nn\np\n1\n\n+100mb\na\n\np\n2\n\n\nw" | fdisk /dev/sda
+	echo -e "o\nn\np\n1\n\n+100mb\na\nn\np\n2\n\n\nw" | fdisk /dev/sda
 
 	#format partitions
 	mkfs.ext4 /dev/sda1

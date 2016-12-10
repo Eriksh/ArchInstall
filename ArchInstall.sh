@@ -66,6 +66,12 @@ request_new_user_password="yes"
 #Variables
 architecture=$(uname -m)
 
+#Download Library File
+sudo wget https://raw.githubusercontent.com/Eriksh/ArchInstall/develop/ArchInstall_Library.sh && sudo chmod +x ArchInstall_Library.sh
+	
+#Add External Source
+source ./ArchInstall_Library.sh
+
 	
 #Add External Source
 source ./ArchInstall_Library.sh

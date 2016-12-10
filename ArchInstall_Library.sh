@@ -8,7 +8,7 @@ Partition_and_Format_Disk ()
 	#wipe and create partitions
 	echo -e "o\nw\n" | fdisk /dev/sda
 	echo -e "n\np\n1\n\n+100mb\na\n\nn\np\n\n\n\n\nw\n" | fdisk /dev/sda
-	partprobe(8)
+	partprobe /dev/sda
 
 	#format partitions
 	mkfs.ext4 /dev/sda1

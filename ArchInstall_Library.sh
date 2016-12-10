@@ -27,7 +27,7 @@ Partition_and_Format_Disk ()
 #########################################################################################################
 Install_Arch ()
 {
-	packages=$1
+	eval packages="$1"
 	
 	#Install OS packages
 	pacstrap /mnt $packages --noconfirm

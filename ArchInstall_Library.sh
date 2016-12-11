@@ -15,9 +15,9 @@ Partition_and_Format_Disk ()
 	mkfs.ext4 /def/sda2
 	
 	#mount filesystem
-	mount /dev/sda1 /mnt
+	mount /dev/sda2 /mnt
 	mkdir /mnt/boot
-	mount /dev/sda2 /mnt/boot
+	mount /dev/sda1 /mnt/boot
 	
 	echo "Formatting Complete..."
 }

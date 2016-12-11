@@ -4,7 +4,7 @@
 # Partition and Format Disk
 #############################################################
 
-# Partitioning disk is designed for 
+# Partitioning disk is designed for
 # to wipe all partitiona and install
 # a home & boot partiton. Anyone wishing
 # to update this section is welcome
@@ -29,7 +29,7 @@ request_new_root_password="yes"
 mirrorlist_country="All"			        #(All, United States, etc)
 mirrorlist_protocol="https"					#(all, http, https)
 rank_mirrorlist_by="rate"					#(rate, score, age, delay, country)
-repository="stable"							#(testing, stable)	
+repository="stable"							#(testing, stable)
 
 #############################################################
 # Install Bootloader
@@ -37,15 +37,15 @@ repository="stable"							#(testing, stable)
 
 #This part of the script has been hard
 #coded to work with my system, anyone
-#wishing to update this section is 
-#free to do so			
+#wishing to update this section is
+#free to do so
 
 #############################################################
 # Basic Utilities & Security
 #############################################################
 install_antivirus="yes"
 install_firewall="yes"
-install_firejail="yes"	
+install_firejail="yes"
 
 #############################################################
 # Creating Users
@@ -54,48 +54,25 @@ usernames=(ehall)									#INPUT INFO
 sudo_update_users=(ehall)
 request_new_user_password="yes"
 
+################################################################################
+################################################################################
+# DO NOT TOUCH ANYTHING BELOW THIS LINE
+################################################################################
+################################################################################
+
 #############################################################
-# System Console utilities
+# Create Seperate Config File
 #############################################################
-
-
-#########################################################################################################
-# PROCESSING - DO NOT CHANGE ANYTHING BELOW THIS LINE
-#########################################################################################################
-#User Instructions
-echo "Before running program please ensure you have the following:"
-echo " * Edit ArchInstall.sh to the way you want it configured"
-echo " * Have an functional internet connection"
-echo ""
-echo "To exit out of install please press CTRL-C"
-read -p "Otherwise press enter to continue installation"
-
-#Download Library File
-wget https://raw.githubusercontent.com/Eriksh/ArchInstall/develop/ArchInstall_Library.sh && chmod +x ArchInstall_Library.sh
-	
-#Add External Source
-source ./ArchInstall_Library.sh
-
-#Update system clock
-timedatectl set-ntp true
-
-#Partition system
-Partition_and_Format_Disk
-
-#Install OS
-Install_Arch "\${OS_packages}"
-
-#Configure_Arch
-Configure_Arch $OS_name $locale $timezone_region $timezone_city $request_new_root_password
-
-#Configure_Pacman
-#Configure_Pacman "\${mirrorlist_country}" "\${mirrorlist_protocol}" "\${rank_mirrorlist_by}" "\${repository}"
-
-#Install Bootloader
-#Bootloader
-
-#Secure OS
-#Secure_OS $install_antivirus $install_firewall $install_firejail
-
-#Create Users
-#Create_Users $usernames $sudo_update_users $request_new_user_password
+echo "OS_packages=\""$OS_packages"\"" >> /mnt/ArchConfig
+echo "OS_name=\""$OS_name"\"" >> /mnt/ArchConfig
+echo "locale=\""$locale"\"" >> /mnt/ArchConfig
+echo "timezone_region=\""$timezone_region"\"" >> /mnt/ArchConfig
+echo "timezone_city=\""$timezone_city"\"" >> /mnt/ArchConfig
+echo "request_new_root_password=\""$request_new_root_password"\"" >> /mnt/ArchConfig
+echo "mirrorlist_country=\""$mirrorlist_country"\"" >> /mnt/ArchConfig
+echo "mirrorlist_protocol=\""$mirrorlist_protocol"\"" >> /mnt/ArchConfig
+echo "rank_mirrorlist_by=\""$rank_mirrorlist_by"\"" >> /mnt/ArchConfig
+echo "repository=\""$repository"\"" >> /mnt/ArchConfig
+echo "install_antivirus=\""$install_antivirus"\"" >> /mnt/ArchConfig
+echo "install_firewall=\""$install_firewall"\"" >> /mnt/ArchConfig
+echo "install_firejail=\""$install_firejail"\"" >> /mnt/ArchConfig

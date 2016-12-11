@@ -101,6 +101,9 @@ wget https://raw.githubusercontent.com/Eriksh/ArchInstall/develop/configOS.sh &&
 #############################################################
 # Run Install Script
 #############################################################
-cd /mnt
-echo "running script"
 ./installOS.sh
+
+#############################################################
+# Run Configuration Script
+#############################################################
+arch-chroot /mnt ./configOS.sh

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Add External Source
-source ./config.sh
+source config.sh
 
 #Update system clock
 timedatectl set-ntp true

@@ -86,7 +86,7 @@ Partition_and_Format_Disk
 Install_Arch "\${OS_packages}"
 
 #Configure_Arch
-#Configure_Arch $OS_name $locale $timezone_region $timezone_city $request_new_root_password
+Configure_Arch $OS_name $locale $timezone_region $timezone_city $request_new_root_password
 
 #Configure_Pacman
 #Configure_Pacman "\${mirrorlist_country}" "\${mirrorlist_protocol}" "\${rank_mirrorlist_by}" "\${repository}"

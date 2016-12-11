@@ -6,44 +6,33 @@ source ./config.sh
 #Update system clock
 timedatectl set-ntp true
 
-#Run the following
-Partition_and_Format_Disk
-Install_Arch
-
-
 #########################################################################################################
 # PARTITION SYSTEM & MOUNT
 #########################################################################################################
-Partition_and_Format_Disk ()
-{
-	#wipe and create partitions
-	echo -e "o\nw\n" | fdisk /dev/sda
-	echo -e "n\np\n1\n\n+100mb\na\n\nn\np\n\n\n\n\nw\n" | fdisk /dev/sda
-	partprobe /dev/sda
 
-	#format partitions
-	mkfs.ext4 /dev/sda1
-	mkfs.ext4 /dev/sda2
+#wipe and create partitions
+echo -e "o\nw\n" | fdisk /dev/sda
+echo -e "n\np\n1\n\n+100mb\na\n\nn\np\n\n\n\n\nw\n" | fdisk /dev/sda
+partprobe /dev/sda
 
-	#mount filesystem
-	mount /dev/sda2 /mnt
-	mkdir /mnt/boot
-	mount /dev/sda1 /mnt/boot
+#format partitions
+mkfs.ext4 /dev/sda1
+mkfs.ext4 /dev/sda2
 
-	echo "Formatting Complete..."
-}
+#mount filesystem
+mount /dev/sda2 /mnt
+mkdir /mnt/boot
+mount /dev/sda1 /mnt/boot
+
+echo "Formatting Complete..."
 
 #########################################################################################################
 # INSTALL ARCH
 #########################################################################################################
-Install_Arch ()
-{
 
-	#Install OS packages
-	pacstrap /mnt $OS_packages --noconfirm
-
-	echo "Installation Complete..."
-}
+#Install OS packages
+pacstrap /mnt $OS_packages --noconfirm
+echo "Installation Complete..."
 
 # #########################################################################################################
 # # CONFIGURE ARCH

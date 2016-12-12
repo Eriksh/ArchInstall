@@ -32,5 +32,4 @@ echo "Formatting Complete..."
 
 #Install OS packages
 pacstrap /mnt $OS_packages --noconfirm
-genfstab -U /mnt >> /mnt/etc/fstab
 echo "Installation Complete..."

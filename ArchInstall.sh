@@ -71,30 +71,29 @@ request_new_user_password="yes"
 #############################################################
 # Create Seperate Config File
 #############################################################
-echo "OS_packages=\""$OS_packages"\"" > /mnt/config.sh
-echo "OS_name=\""$OS_name"\"" >> /mnt/config.sh
-echo "locale=\""$locale"\"" >> /mnt/config.sh
-echo "timezone_region=\""$timezone_region"\"" >> /mnt/config.sh
-echo "timezone_city=\""$timezone_city"\"" >> /mnt/config.sh
-echo "request_new_root_password=\""$request_new_root_password"\"" >> /mnt/config.sh
-echo "mirrorlist_country=\""$mirrorlist_country"\"" >> /mnt/config.sh
-echo "mirrorlist_protocol=\""$mirrorlist_protocol"\"" >> /mnt/config.sh
-echo "rank_mirrorlist_by=\""$rank_mirrorlist_by"\"" >> /mnt/config.sh
-echo "repository=\""$repository"\"" >> /mnt/config.sh
-echo "install_antivirus=\""$install_antivirus"\"" >> /mnt/config.sh
-echo "install_firewall=\""$install_firewall"\"" >> /mnt/config.sh
-echo "install_firejail=\""$install_firejail"\"" >> /mnt/config.sh
-echo "usernames=("$usernames")" >> /mnt/config.sh
-echo "sudo_update_users=("$sudo_update_users")" >> /mnt/config.sh
-echo "request_new_user_password=\""$request_new_user_password"\"" >> /mnt/config.sh
+echo "OS_packages=\""$OS_packages"\"" > /root/config.sh
+echo "OS_name=\""$OS_name"\"" >> /root/config.sh
+echo "locale=\""$locale"\"" >> /root/config.sh
+echo "timezone_region=\""$timezone_region"\"" >> /root/config.sh
+echo "timezone_city=\""$timezone_city"\"" >> /root/config.sh
+echo "request_new_root_password=\""$request_new_root_password"\"" >> /root/config.sh
+echo "mirrorlist_country=\""$mirrorlist_country"\"" >> /root/config.sh
+echo "mirrorlist_protocol=\""$mirrorlist_protocol"\"" >> /root/config.sh
+echo "rank_mirrorlist_by=\""$rank_mirrorlist_by"\"" >> /root/config.sh
+echo "repository=\""$repository"\"" >> /root/config.sh
+echo "install_antivirus=\""$install_antivirus"\"" >> /root/config.sh
+echo "install_firewall=\""$install_firewall"\"" >> /root/config.sh
+echo "install_firejail=\""$install_firejail"\"" >> /root/config.sh
+echo "usernames=("$usernames")" >> /root/config.sh
+echo "sudo_update_users=("$sudo_update_users")" >> /root/config.sh
+echo "request_new_user_password=\""$request_new_user_password"\"" >> /root/config.sh
 
-chmod +x /mnt/config.sh
+chmod +x /root/config.sh
 echo "Created new config file..."
 
 #############################################################
 # Download Installation Files
 #############################################################
-cd /mnt
 wget https://raw.githubusercontent.com/Eriksh/ArchInstall/develop/installOS.sh && chmod +x installOS.sh
 wget https://raw.githubusercontent.com/Eriksh/ArchInstall/develop/configOS.sh && chmod +x configOS.sh
 
@@ -106,4 +105,6 @@ wget https://raw.githubusercontent.com/Eriksh/ArchInstall/develop/configOS.sh &&
 #############################################################
 # Run Configuration Script
 #############################################################
-arch-chroot /mnt /mnt/configOS.sh
+cp configOS.sh /mnt/configOS.sh
+genfstab -p -U /mnt >> /mnt/etc/fstab
+arch-chroot /mnt ./configOS.sh

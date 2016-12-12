@@ -105,6 +105,7 @@ wget https://raw.githubusercontent.com/Eriksh/ArchInstall/develop/configOS.sh &&
 #############################################################
 # Run Configuration Script
 #############################################################
+cp configOS.sh /mnt/config.sh
 cp configOS.sh /mnt/configOS.sh
 genfstab -p -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt ./configOS.sh

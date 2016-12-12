@@ -7,12 +7,6 @@ source config.sh
 # CONFIGURE ARCH
 #########################################################################################################
 
-#Generate Fstab
-genfstab -U /mnt >> /mnt/etc/fstab
-
-#Chroot into new install
-arch-chroot /mnt
-
 #Set hostname
 echo "$OS_name" > /etc/hostname
 

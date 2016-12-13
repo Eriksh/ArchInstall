@@ -1,58 +1,21 @@
 #!/bin/bash
 
 #############################################################
-# Partition and Format Disk
+# Installation Options
 #############################################################
-
-# Partitioning disk is designed for
-# to wipe all partitiona and install
-# a home & boot partiton. Anyone wishing
-# to update this section is welcome
-
-#############################################################
-# Install Base OS
-#############################################################
-OS_packages="base base-devel"
-
-#############################################################
-# Configure OS
-#############################################################
-OS_name="ArchSys"
+select_keymap="us"
+default_editor="vim"
+os_packages="base base-devel"
+os_name="ArchSys"
 locale="en_US.UTF-8"
 timezone_region="US"
 timezone_city="Pacific"
 request_new_root_password="yes"
+mirrorlist_country="All"
+mirrorlist_protocol="https"
+rank_mirrorlist_by="rate"
+repository="stable"
 
-#############################################################
-# Configure Pacman
-#############################################################
-mirrorlist_country="All"			        #(All, United States, etc)
-mirrorlist_protocol="https"					#(all, http, https)
-rank_mirrorlist_by="rate"					#(rate, score, age, delay, country)
-repository="stable"							#(testing, stable)
-
-#############################################################
-# Install Bootloader
-#############################################################
-
-#This part of the script has been hard
-#coded to work with my system, anyone
-#wishing to update this section is
-#free to do so
-
-#############################################################
-# Basic Utilities & Security
-#############################################################
-install_antivirus="yes"
-install_firewall="yes"
-install_firejail="yes"
-
-#############################################################
-# Creating Users
-#############################################################
-usernames=(ehall)									#INPUT INFO
-sudo_update_users=(ehall)
-request_new_user_password="yes"
 
 
 
@@ -68,44 +31,64 @@ request_new_user_password="yes"
 # DO NOT TOUCH ANYTHING BELOW THIS LINE
 ################################################################################
 
-#############################################################
-# Create Seperate Config File
-#############################################################
-echo "OS_packages=\""$OS_packages"\"" > /root/config.sh
-echo "OS_name=\""$OS_name"\"" >> /root/config.sh
-echo "locale=\""$locale"\"" >> /root/config.sh
-echo "timezone_region=\""$timezone_region"\"" >> /root/config.sh
-echo "timezone_city=\""$timezone_city"\"" >> /root/config.sh
-echo "request_new_root_password=\""$request_new_root_password"\"" >> /root/config.sh
-echo "mirrorlist_country=\""$mirrorlist_country"\"" >> /root/config.sh
-echo "mirrorlist_protocol=\""$mirrorlist_protocol"\"" >> /root/config.sh
-echo "rank_mirrorlist_by=\""$rank_mirrorlist_by"\"" >> /root/config.sh
-echo "repository=\""$repository"\"" >> /root/config.sh
-echo "install_antivirus=\""$install_antivirus"\"" >> /root/config.sh
-echo "install_firewall=\""$install_firewall"\"" >> /root/config.sh
-echo "install_firejail=\""$install_firejail"\"" >> /root/config.sh
-echo "usernames=("$usernames")" >> /root/config.sh
-echo "sudo_update_users=("$sudo_update_users")" >> /root/config.sh
-echo "request_new_user_password=\""$request_new_user_password"\"" >> /root/config.sh
+# KEYMAP
+#############################################
+Select_Keymap()
+{
+  keymap_list=("ANSI-dvorak" "amiga-de" "amiga-us" "applkey" "atari-de" "atari-se" "atari-uk-falcon" "atari-us" "azerty" "backspace" "bashkir" "be-latin1" "bg-cp1251" "bg-cp855" "bg_bds-cp1251" "bg_bds-utf8" "bg_pho-cp1251" "bg_pho-utf8" "br-abnt" "br-abnt2" "br-latin1-abnt2" "br-latin1-us" "by" "by-cp1251" "bywin-cp1251" "cf" "colemak" "croat" "ctrl" "cz" "cz-cp1250" "cz-lat2" "cz-lat2-prog" "cz-qwertz" "cz-us-qwertz" "de" "de-latin1" "de-latin1-nodeadkeys" "de-mobii" "de_CH-latin1" "de_alt_UTF-8" "defkeymap" "defkeymap_V1.0" "dk" "dk-latin1" "dvorak" "dvorak-ca-fr" "dvorak-es" "dvorak-fr" "dvorak-l" "dvorak-la" "dvorak-programmer" "dvorak-r" "dvorak-ru" "dvorak-sv-a1" "dvorak-sv-a5" "dvorak-uk" "emacs" "emacs2" "es" "es-cp850" "es-olpc" "et" "et-nodeadkeys" "euro" "euro1" "euro2" "fi" "fr" "fr-bepo" "fr-bepo-latin9" "fr-latin1" "fr-latin9" "fr-pc" "fr_CH" "fr_CH-latin1" "gr" "gr-pc" "hu" "hu101" "il" "il-heb" "il-phonetic" "is-latin1" "is-latin1-us" "it" "it-ibm" "it2" "jp106" "kazakh" "keypad" "ky_alt_sh-UTF-8" "kyrgyz" "la-latin1" "lt" "lt.baltic" "lt.l4" "lv" "lv-tilde" "mac-be" "mac-de-latin1" "mac-de-latin1-nodeadkeys" "mac-de_CH" "mac-dk-latin1" "mac-dvorak" "mac-es" "mac-euro" "mac-euro2" "mac-fi-latin1" "mac-fr" "mac-fr_CH-latin1" "mac-it" "mac-pl" "mac-pt-latin1" "mac-se" "mac-template" "mac-uk" "mac-us" "mk" "mk-cp1251" "mk-utf" "mk0" "nl" "nl2" "no" "no-dvorak" "no-latin1" "pc110" "pl" "pl1" "pl2" "pl3" "pl4" "pt-latin1" "pt-latin9" "pt-olpc" "ro" "ro_std" "ro_win" "ru" "ru-cp1251" "ru-ms" "ru-yawerty" "ru1" "ru2" "ru3" "ru4" "ru_win" "ruwin_alt-CP1251" "ruwin_alt-KOI8-R" "ruwin_alt-UTF-8" "ruwin_alt_sh-UTF-8" "ruwin_cplk-CP1251" "ruwin_cplk-KOI8-R" "ruwin_cplk-UTF-8" "ruwin_ct_sh-CP1251" "ruwin_ct_sh-KOI8-R" "ruwin_ct_sh-UTF-8" "ruwin_ctrl-CP1251" "ruwin_ctrl-KOI8-R" "ruwin_ctrl-UTF-8" "se-fi-ir209" "se-fi-lat6" "se-ir209" "se-lat6" "sg" "sg-latin1" "sg-latin1-lk450" "sk-prog-qwerty" "sk-prog-qwertz" "sk-qwerty" "sk-qwertz" "slovene" "sr-cy" "sun-pl" "sun-pl-altgraph" "sundvorak" "sunkeymap" "sunt4-es" "sunt4-fi-latin1" "sunt4-no-latin1" "sunt5-cz-us" "sunt5-de-latin1" "sunt5-es" "sunt5-fi-latin1" "sunt5-fr-latin1" "sunt5-ru" "sunt5-uk" "sunt5-us-cz" "sunt6-uk" "sv-latin1" "tj_alt-UTF8" "tr_f-latin5" "tr_q-latin5" "tralt" "trf" "trf-fgGIod" "trq" "ttwin_alt-UTF-8" "ttwin_cplk-UTF-8" "ttwin_ct_sh-UTF-8" "ttwin_ctrl-UTF-8" "ua" "ua-cp1251" "ua-utf" "ua-utf-ws" "ua-ws" "uk" "unicode" "us" "us-acentos" "wangbe" "wangbe2" "windowkeys");
+  select KEYMAP in "${keymap_list[@]}"; do
+      if [ "$select_keymap" == "$KEYMAP" ]; then
+        loadkeys $select_keymap
+        echo "Keymap was set..."
+        break
+      fi
+  done
+}
 
-chmod +x /root/config.sh
-echo "Created new config file..."
+# DEFAULT EDITOR
+#############################################
+Select_Editor()
+{
+  editors_list=("emacs" "nano" "vi" "vim" "neovim" "zile");
+  select EDITOR in "${editors_list[@]}"; do
+    if [ "$default_editor" == "$EDITOR" ]; then
+      pacman -S $default_editor --noconfirm
+      echo "Default editor was set..."
+      break
+    fi
+  done
+}
 
-#############################################################
-# Download Installation Files
-#############################################################
-wget https://raw.githubusercontent.com/Eriksh/ArchInstall/develop/installOS.sh && chmod +x installOS.sh
-wget https://raw.githubusercontent.com/Eriksh/ArchInstall/develop/configOS.sh && chmod +x configOS.sh
 
-#############################################################
-# Run Install Script
-#############################################################
-./installOS.sh
 
-#############################################################
-# Run Configuration Script
-#############################################################
-cp configOS.sh /mnt/config.sh
-cp configOS.sh /mnt/configOS.sh
-genfstab -p -U /mnt >> /mnt/etc/fstab
-arch-chroot /mnt ./configOS.sh
+
+# PARTITION
+#############################################
+
+echo -e "o\nw\n" | fdisk /dev/sda
+echo -e "n\np\n1\n\n+100mb\na\n\nn\np\n\n\n\n\nw\n" | fdisk /dev/sda
+partprobe /dev/sda
+
+#format partitions
+mkfs.ext4 /dev/sda1
+mkfs.ext4 /dev/sda2
+
+#mount filesystem
+mount /dev/sda2 /mnt
+mkdir /mnt/boot
+mount /dev/sda1 /mnt/boot
+
+echo "Formatting Complete..."
+
+# INSTALL
+#############################################
+#Install OS packages
+pacstrap /mnt $OS_packages --noconfirm
+echo "Installation Complete..."
+
+
+# MAIN
+#############################################
+timedatectl set-ntp true
+Select_Keymap()
+Select_Editor()

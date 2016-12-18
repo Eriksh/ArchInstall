@@ -266,6 +266,14 @@ chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 }
 
+# REBOOT
+#############################################
+Reboot()
+{
+  umount -R /mnt
+  reboot
+}
+
 # MAIN
 #############################################
 #timedatectl set-ntp true
@@ -279,3 +287,4 @@ OS_Timezone $timezone_region $timezone_city
 Root_Password $request_new_root_password
 Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
 Install_Bootloader
+Reboot

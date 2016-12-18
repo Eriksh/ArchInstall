@@ -77,10 +77,26 @@ Manage_Partition()
 Install_OS()
 {
   eval OS_packages="$1"
-  
+
   #Install OS packages
   pacstrap /mnt $OS_packages --noconfirm
+  genfstab -U /mnt >> /mnt/etc/fstab
   echo "Installation Complete..."
+}
+
+# OS NAME
+#############################################
+OS_Name()
+{
+  os_name=$1
+
+#Create File
+cat <<EOF > /mnt/root/quickScript.sh
+  echo "$os_name" > /etc/hostname;
+  exit;
+EOF
+arch-chroot /mnt /root/quickScript.sh
+
 }
 
 # MAIN
@@ -90,3 +106,4 @@ Select_Keymap $select_keymap
 Select_Editor $default_editor
 Manage_Partition
 Install_OS "\${os_packages}"
+OS_Name $os_name

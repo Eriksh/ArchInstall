@@ -93,12 +93,53 @@ OS_Name()
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
   echo "$os_name" > /etc/hostname
+  echo "Named OS..."
+  rm /mnt/root/quickScript.sh
   exit
 EOF
 
 chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
+}
 
+# OS LOCALE
+#############################################
+OS_Locale()
+{
+  locale=$1
+
+#Create File
+cat <<EOF > /mnt/root/quickScript.sh
+  sed -i '/' "$locale" '/s/^#//g' /etc/locale.gen
+  echo "LANG=$locale" > /etc/locale.conf
+  locale-gen
+  echo "Updated Locale..."
+  rm /mnt/root/quickScript.sh
+  exit
+EOF
+
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
+}
+
+# OS TIMEZONE
+#############################################
+OS_Timezone()
+{
+  timezone_region=$1
+  timezone_city=$2
+
+#Create File
+cat <<EOF > /mnt/root/quickScript.sh
+  ln -s /usr/share/zoneinfo/$timezone_region/$timezone_city /etc/localtime
+  hwclock --systohc
+  echo "Updated Timezone..."
+  rm /mnt/root/quickScript.sh
+  exit
+EOF
+
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
 }
 
 # MAIN
@@ -109,3 +150,5 @@ arch-chroot /mnt /root/quickScript.sh
 #Manage_Partition
 #Install_OS "\${os_packages}"
 OS_Name $os_name
+OS_Locale $locale
+OS_Timezone $timezone_region $timezone_city

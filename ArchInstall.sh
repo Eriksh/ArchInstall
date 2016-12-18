@@ -92,6 +92,7 @@ OS_Name()
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
+  #Set hostname
   echo "$os_name" > /etc/hostname
   echo "Named OS..."
   rm /mnt/root/quickScript.sh
@@ -110,6 +111,7 @@ OS_Locale()
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
+  #Set locale
   sed -i '/' "$locale" '/s/^#//g' /etc/locale.gen
   echo "LANG=$locale" > /etc/locale.conf
   locale-gen
@@ -131,11 +133,114 @@ OS_Timezone()
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
+  #Set timezone
   ln -s /usr/share/zoneinfo/$timezone_region/$timezone_city /etc/localtime
   hwclock --systohc
   echo "Updated Timezone..."
   rm /mnt/root/quickScript.sh
   exit
+EOF
+
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
+}
+
+# NEW ROOT PASSWORD
+#############################################
+Root_Password()
+{
+  request_new_root_password=$1
+
+#Create File
+cat <<EOF > /mnt/root/quickScript.sh
+  #Create new root password
+  if [ "$request_new_root_password" == "yes" ]; then
+    clear
+    echo "Please enter root password:"
+    passwd root
+  fi
+  echo "Updated Root Password..."
+  rm /mnt/root/quickScript.sh
+  exit
+EOF
+
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
+}
+
+# CONFIGURE PACMAN
+#############################################
+Configure_Pacman()
+{
+  #Arguments
+	country="$1"
+	protocol="$2"
+	rank_by="$3"
+	repository="$4"
+
+#Create File
+cat <<EOF > /mnt/root/quickScript.sh
+#Install both HTTP and HTTPS mirrorlists
+if [ "$protocol" == "all" ]; then
+
+  if [ "$country" == "All" ]; then
+
+    reflector --verbose --protocol http --protocol https --sort $rank_by --save /etc/pacman.d/mirrorlist
+
+  else
+
+    reflector --verbose --country "$country" --protocol http --protocol https --sort $rank_by --save /etc/pacman.d/mirrorlist
+
+  fi
+
+else
+
+  if [ "$country" == "All" ]; then
+
+    reflector --verbose --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
+
+  else
+
+    reflector --verbose --country "$country" --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
+
+  fi
+
+fi
+
+#Select Repository
+if [ "$repository" == "stable" ]; then
+  sed -i "/\[core\]/,/Include/"'s/^#//' /etc/pacman.conf
+  sed -i "/\[extra\]/,/Include/"'s/^#//' /etc/pacman.conf
+  sed -i "/\[community\]/,/Include/"'s/^#//' /etc/pacman.conf
+  sed -i "/\[multilib\]/,/Include/"'s/^#//' /etc/pacman.conf
+  sed -i "/\[testing\]/,/Include/"'s/^/#/' /etc/pacman.conf
+  sed -i "/\[community-testing\]/,/Include/"'s/^/#/' /etc/pacman.conf
+  sed -i "/\[multilib-testing\]/,/Include/"'s/^/#/' /etc/pacman.conf
+
+elif [ "$repository" == "testing" ]; then
+  sed -i "/\[core]/,/Include/"'s/^/#/' /etc/pacman.conf
+  sed -i "/\[extra]/,/Include/"'s/^/#/' /etc/pacman.conf
+  sed -i "/\[community]/,/Include/"'s/^/#/' /etc/pacman.conf
+  sed -i "/\[multilib]/,/Include/"'s/^/#/' /etc/pacman.conf
+  sed -i "/\[testing]/,/Include/"'s/^#//' /etc/pacman.conf
+  sed -i "/\[community-testing]/,/Include/"'s/^#//' /etc/pacman.conf
+  sed -i "/\[multilib-testing]/,/Include/"'s/^#//' /etc/pacman.conf
+
+else
+  echo "Invalid repository selected: $repository"
+  exit
+
+fi
+
+#Refresh and repopulate pacman
+pacman-key --init
+pacman-key --refresh-key
+pacman-key --populate archlinux
+pacman -Syy
+pacman -Syu --noconfirm
+echo "Configured Pacman.."
+rm /mnt/root/quickScript.sh
+exit
 EOF
 
 chmod +x /mnt/root/quickScript.sh
@@ -152,3 +257,5 @@ arch-chroot /mnt /root/quickScript.sh
 OS_Name $os_name
 OS_Locale $locale
 OS_Timezone $timezone_region $timezone_city
+Root_Password $request_new_root_password
+Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository

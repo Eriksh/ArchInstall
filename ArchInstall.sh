@@ -41,9 +41,11 @@ Select_Keymap()
       echo "Runing loop"
       echo $KEYMAP
       if [ "$select_keymap" == "$KEYMAP" ]; then
-        loadkeys $select_keymap
+        #loadkeys $select_keymap
         echo "Keymap was set..."
         break
+      else
+        invalid_option
       fi
   done
 }

@@ -11,7 +11,7 @@ locale="en_US.UTF-8"
 timezone_region="US"
 timezone_city="Pacific"
 request_new_root_password="yes"
-mirrorlist_country="All"
+mirrorlist_country="all"
 mirrorlist_protocol="https"
 rank_mirrorlist_by="rate"
 repository="stable"
@@ -183,7 +183,7 @@ cat <<EOF > /mnt/root/quickScript.sh
 #Install both HTTP and HTTPS mirrorlists
 if [ "$protocol" == "all" ]; then
 
-  if [ "$country" == "All" ]; then
+  if [ "$country" == "all" ]; then
 
     reflector --verbose --protocol http --protocol https --sort $rank_by --save /etc/pacman.d/mirrorlist
 
@@ -195,7 +195,7 @@ if [ "$protocol" == "all" ]; then
 
 else
 
-  if [ "$country" == "All" ]; then
+  if [ "$country" == "all" ]; then
 
     reflector --verbose --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
 
@@ -239,7 +239,26 @@ pacman-key --populate archlinux
 pacman -Syy
 pacman -Syu --noconfirm
 echo "Configured Pacman.."
-#rm /mnt/root/quickScript.sh
+rm /mnt/root/quickScript.sh
+exit
+EOF
+
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
+}
+
+# INSTALL BOOTLOADER
+#############################################
+Install_Bootloader()
+{
+
+#Create File
+cat <<EOF > /mnt/root/quickScript.sh
+pacman -S grub --noconfirm
+grub-install --recheck /dev/sda
+grub-mkconfig -o /boot/grub/grub.cfg
+echo "Updated Root Password..."
+rm /mnt/root/quickScript.sh
 exit
 EOF
 
@@ -259,3 +278,4 @@ OS_Locale $locale
 OS_Timezone $timezone_region $timezone_city
 Root_Password $request_new_root_password
 Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
+Install_Bootloader

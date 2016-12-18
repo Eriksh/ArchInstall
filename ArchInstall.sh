@@ -16,17 +16,6 @@ mirrorlist_protocol="https"
 rank_mirrorlist_by="rate"
 repository="stable"
 
-
-
-
-
-
-
-
-
-
-
-
 ################################################################################
 # DO NOT TOUCH ANYTHING BELOW THIS LINE
 ################################################################################
@@ -63,30 +52,38 @@ Select_Editor()
 
 # PARTITION
 #############################################
-# echo -e "o\nw\n" | fdisk /dev/sda
-# echo -e "n\np\n1\n\n+100mb\na\n\nn\np\n\n\n\n\nw\n" | fdisk /dev/sda
-# partprobe /dev/sda
-#
-# #format partitions
-# mkfs.ext4 /dev/sda1
-# mkfs.ext4 /dev/sda2
-#
-# #mount filesystem
-# mount /dev/sda2 /mnt
-# mkdir /mnt/boot
-# mount /dev/sda1 /mnt/boot
-#
-# echo "Formatting Complete..."
+Manage_Partition()
+{
+  echo -e "o\nw\n" | fdisk /dev/sda
+  echo -e "n\np\n1\n\n+100mb\na\n\nn\np\n\n\n\n\nw\n" | fdisk /dev/sda
+  partprobe /dev/sda
+
+  #format partitions
+  mkfs.ext4 /dev/sda1
+  mkfs.ext4 /dev/sda2
+
+  #mount filesystem
+  mount /dev/sda2 /mnt
+  mkdir /mnt/boot
+  mount /dev/sda1 /mnt/boot
+
+  echo "Formatting Complete..."
+}
+
 
 # INSTALL
 #############################################
-# #Install OS packages
-# pacstrap /mnt $OS_packages --noconfirm
-# echo "Installation Complete..."
-
+Install_OS()
+{
+  #Install OS packages
+  pacstrap /mnt $OS_packages --noconfirm
+  echo "Installation Complete..."
+}
 
 # MAIN
 #############################################
 timedatectl set-ntp true
 Select_Keymap $select_keymap
 Select_Editor $default_editor
+Manage_Partition
+Install_OS $os_packages

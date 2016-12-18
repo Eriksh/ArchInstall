@@ -86,5 +86,5 @@ Select_Editor()
 # MAIN
 #############################################
 timedatectl set-ntp true
-Select_Keymap()
-Select_Editor()
+Select_Keymap
+Select_Editor

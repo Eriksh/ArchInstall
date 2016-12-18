@@ -92,18 +92,20 @@ OS_Name()
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
-  echo "$os_name" > /etc/hostname;
-  exit;
+  echo "$os_name" > /etc/hostname
+  exit
 EOF
+
+chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 
 }
 
 # MAIN
 #############################################
-timedatectl set-ntp true
-Select_Keymap $select_keymap
-Select_Editor $default_editor
-Manage_Partition
-Install_OS "\${os_packages}"
+#timedatectl set-ntp true
+#Select_Keymap $select_keymap
+#Select_Editor $default_editor
+#Manage_Partition
+#Install_OS "\${os_packages}"
 OS_Name $os_name

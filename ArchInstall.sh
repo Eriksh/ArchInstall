@@ -40,7 +40,7 @@ Select_Keymap()
   for KEYMAP in $keymap_list; do
       echo "Runing loop"
       echo $select_keymap
-      if [ $select_keymap == $KEYMAP ]; then
+      if [ "$select_keymap" == "$KEYMAP" ]; then
         loadkeys $select_keymap
         echo "Keymap was set..."
         break

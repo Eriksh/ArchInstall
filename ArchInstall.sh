@@ -239,7 +239,7 @@ pacman-key --populate archlinux
 pacman -Syy
 pacman -Syu --noconfirm
 echo "Configured Pacman.."
-rm /mnt/root/quickScript.sh
+#rm /mnt/root/quickScript.sh
 exit
 EOF
 

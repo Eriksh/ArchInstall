@@ -3,6 +3,7 @@
 #############################################################
 # Installation Options
 #############################################################
+disk="/dev/sda"
 select_keymap="us"
 default_editor="vim"
 os_packages="base base-devel"
@@ -55,7 +56,8 @@ Select_Editor()
 #############################################
 Manage_Partition()
 {
-  echo -e "o\nw\n" | fdisk /dev/sda
+  disk_number=$1
+  echo -e "o\nw\n" | fdisk $disk_number
   echo -e "n\np\n1\n\n+100mb\na\n\nn\np\n\n\n\n\nw\n" | fdisk /dev/sda
   partprobe /dev/sda
 
@@ -279,7 +281,7 @@ Reboot()
 timedatectl set-ntp true
 Select_Keymap $select_keymap
 Select_Editor $default_editor
-Manage_Partition
+Manage_Partition $disk
 Install_OS "\${os_packages}"
 OS_Name $os_name
 OS_Locale $locale

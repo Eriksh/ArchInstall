@@ -3,6 +3,7 @@
 #############################################################
 # Installation Options
 #############################################################
+disk="/dev/sda"
 select_keymap="us"
 default_editor="vim"
 os_packages="base base-devel"
@@ -55,18 +56,21 @@ Select_Editor()
 #############################################
 Manage_Partition()
 {
-  echo -e "o\nw\n" | fdisk /dev/sda
-  echo -e "n\np\n1\n\n+100mb\na\n\nn\np\n\n\n\n\nw\n" | fdisk /dev/sda
-  partprobe /dev/sda
+  disk_number=$1
+  first_partition=1
+  second_partition=2
+  echo -e "o\nw\n" | fdisk $disk_number
+  echo -e "n\np\n1\n\n+100mb\na\n\nn\np\n\n\n\n\nw\n" | fdisk $disk_number
+  partprobe $disk_number
 
   #format partitions
-  mkfs.ext4 /dev/sda1
-  mkfs.ext4 /dev/sda2
+  mkfs.ext4 $disk_number$first_partition
+  mkfs.ext4 $disk_number$second_partition
 
   #mount filesystem
-  mount /dev/sda2 /mnt
+  mount $disk_number$second_partition /mnt
   mkdir /mnt/boot
-  mount /dev/sda1 /mnt/boot
+  mount $disk_number$first_partition /mnt/boot
 
   echo "Formatting Complete..."
 }
@@ -279,7 +283,7 @@ Reboot()
 timedatectl set-ntp true
 Select_Keymap $select_keymap
 Select_Editor $default_editor
-Manage_Partition
+Manage_Partition $disk
 Install_OS "\${os_packages}"
 OS_Name $os_name
 OS_Locale $locale

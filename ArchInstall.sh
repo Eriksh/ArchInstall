@@ -270,21 +270,21 @@ arch-chroot /mnt /root/quickScript.sh
 #############################################
 Reboot()
 {
-  # umount -R /mnt
-  # reboot
+  umount -R /mnt
+  reboot
 }
 
 # MAIN
 #############################################
-#timedatectl set-ntp true
-#Select_Keymap $select_keymap
-#Select_Editor $default_editor
-#Manage_Partition
-#Install_OS "\${os_packages}"
+timedatectl set-ntp true
+Select_Keymap $select_keymap
+Select_Editor $default_editor
+Manage_Partition
+Install_OS "\${os_packages}"
 OS_Name $os_name
 OS_Locale $locale
 OS_Timezone $timezone_region $timezone_city
 Root_Password $request_new_root_password
 Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
 Install_Bootloader
-#Reboot
+Reboot

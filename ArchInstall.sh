@@ -270,8 +270,8 @@ arch-chroot /mnt /root/quickScript.sh
 #############################################
 Reboot()
 {
-  umount -R /mnt
-  reboot
+  # umount -R /mnt
+  # reboot
 }
 
 # MAIN
@@ -287,4 +287,4 @@ OS_Timezone $timezone_region $timezone_city
 Root_Password $request_new_root_password
 Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
 Install_Bootloader
-Reboot
+#Reboot

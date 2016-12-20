@@ -3,9 +3,9 @@
 #############################################################
 # Installation Options
 #############################################################
-disk="/dev/sda"
 select_keymap="us"
 default_editor="vim"
+disk="/dev/sda"
 os_packages="base base-devel"
 os_name="ArchSys"
 locale="en_US.UTF-8"
@@ -16,6 +16,9 @@ mirrorlist_country="all"
 mirrorlist_protocol="https"
 rank_mirrorlist_by="rate"
 repository="stable"
+usernames=(username1 username2)
+sudo_update_users=(username1 username2)
+request_new_user_password="yes"
 
 ################################################################################
 # DO NOT TOUCH ANYTHING BELOW THIS LINE
@@ -251,6 +254,51 @@ chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 }
 
+# CREATE USERS
+#############################################
+Create_Users()
+{
+  usernames=$1
+	addToSudo=$2
+	newUserPass=$3
+
+cat <<EOF > /mnt/root/quickScript.sh
+#Download sudo
+pacman -S sudo --noconfirm
+
+#Create users
+for username in ${usernames[*]}; do
+
+	#Create user
+	useradd -m -G wheel -s /bin/bash $username
+
+	#Create new user password
+	if [ "$newUserPass" == "yes" ]; then
+		clear
+		echo "Please enter password for user $username:"
+		passwd $username
+	fi
+
+done
+
+#Create users
+for username in ${addToSudo[*]}; do
+
+	#Add user to sudo
+	if [ "$addToSudo" == "yes" ]; then
+
+		echo "$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
+
+	fi
+
+done
+
+echo "Finished adding user"
+EOF
+
+}
+
+
 # INSTALL BOOTLOADER
 #############################################
 Install_Bootloader()
@@ -261,7 +309,7 @@ cat <<EOF > /mnt/root/quickScript.sh
 pacman -S grub --noconfirm
 grub-install --recheck /dev/sda
 grub-mkconfig -o /boot/grub/grub.cfg
-echo "Updated Root Password..."
+echo "Installed bootloader..."
 rm /mnt/root/quickScript.sh
 exit
 EOF

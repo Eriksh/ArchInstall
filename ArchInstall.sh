@@ -264,7 +264,7 @@ cat <<EOF > /mnt/root/quickScript.sh
 pacman -S sudo --noconfirm
 
 #Create users
-for username in $usernames; do
+for username in ${usernames[*]}; do
 
 	#Create user
 	useradd -m -G wheel -s /bin/bash $username
@@ -279,7 +279,7 @@ for username in $usernames; do
 done
 
 #Create users
-for username in $addToSudo; do
+for username in ${addToSudo[*]}; do
 
 	#Add user to sudo
 	if [ "$addToSudo" == "yes" ]; then

@@ -102,7 +102,6 @@ cat <<EOF > /mnt/root/quickScript.sh
   #Set hostname
   echo "$os_name" > /etc/hostname
   echo "Named OS..."
-  rm /mnt/root/quickScript.sh
   exit
 EOF
 
@@ -123,7 +122,6 @@ cat <<EOF > /mnt/root/quickScript.sh
   echo "LANG=$locale" > /etc/locale.conf
   locale-gen
   echo "Updated Locale..."
-  rm /mnt/root/quickScript.sh
   exit
 EOF
 
@@ -144,7 +142,6 @@ cat <<EOF > /mnt/root/quickScript.sh
   ln -s /usr/share/zoneinfo/$timezone_region/$timezone_city /etc/localtime
   hwclock --systohc
   echo "Updated Timezone..."
-  rm /mnt/root/quickScript.sh
   exit
 EOF
 
@@ -167,7 +164,6 @@ cat <<EOF > /mnt/root/quickScript.sh
     passwd root
   fi
   echo "Updated Root Password..."
-  rm /mnt/root/quickScript.sh
   exit
 EOF
 
@@ -246,7 +242,6 @@ pacman-key --populate archlinux
 pacman -Syy
 pacman -Syu --noconfirm
 echo "Configured Pacman.."
-rm /mnt/root/quickScript.sh
 exit
 EOF
 
@@ -267,7 +262,7 @@ cat <<EOF > /mnt/root/quickScript.sh
 pacman -S sudo --noconfirm
 
 #Create users
-for username in ${usernames[*]}; do
+for username in $usernames; do
 
 	#Create user
 	useradd -m -G wheel -s /bin/bash $username
@@ -282,7 +277,7 @@ for username in ${usernames[*]}; do
 done
 
 #Create users
-for username in ${addToSudo[*]}; do
+for username in $addToSudo; do
 
 	#Add user to sudo
 	if [ "$addToSudo" == "yes" ]; then
@@ -294,6 +289,7 @@ for username in ${addToSudo[*]}; do
 done
 
 echo "Finished adding user"
+exit
 EOF
 
 }

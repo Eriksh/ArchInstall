@@ -16,8 +16,8 @@ mirrorlist_country="all"
 mirrorlist_protocol="https"
 rank_mirrorlist_by="rate"
 repository="stable"
-usernames=(username1 username2)
-sudo_update_users=(username1 username2)
+usernames=(erik john)
+sudo_update_users=(erik john)
 request_new_user_password="yes"
 
 ################################################################################
@@ -279,7 +279,7 @@ for username in ${usernames[*]}; do
 done
 
 #Create users
-for username in ${addToSudo[*]}; do
+for username in ${usernames[*]}; do
 
 	#Add user to sudo
 	if [ "$addToSudo" == "yes" ]; then

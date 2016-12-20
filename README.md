@@ -8,8 +8,8 @@ familiar with installing Arch manually.
 Installing & Running
 ---
 When the live cd reaches the terminal screen, enter the following commands:
-`pacman -Syy wget
-wget https://raw.githubusercontent.com/Eriksh/ArchInstall/develop/ArchInstall.sh && chmod +x ArchInstall.sh`
+`pacman -Syy wget`
+`wget https://raw.githubusercontent.com/Eriksh/ArchInstall/develop/ArchInstall.sh && chmod +x ArchInstall.sh`
 
 Next the user should configure the settings they want using:
 `nano ArchInstall.sh`

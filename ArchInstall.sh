@@ -184,6 +184,8 @@ Configure_Pacman()
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
 #Install both HTTP and HTTPS mirrorlists
+pacman -S reflector --noconfirm
+
 if [ "$protocol" == "all" ]; then
 
   if [ "$country" == "all" ]; then
@@ -292,8 +294,9 @@ echo "Finished adding user"
 exit
 EOF
 
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
 }
-
 
 # INSTALL BOOTLOADER
 #############################################

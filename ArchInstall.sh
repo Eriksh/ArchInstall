@@ -183,7 +183,7 @@ Configure_Pacman()
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
-#Install both HTTP and HTTPS mirrorlists
+#!/bin/bash
 pacman -S reflector --noconfirm
 
 if [ "$protocol" == "all" ]; then
@@ -257,16 +257,16 @@ Create_Users()
 {
 
 cat <<EOF > /mnt/root/quickScript.sh
-#Download sudo
+#!/bin/bash
 
-usernames=$1
-addToSudo=$2
+usernames=("$@")
+addToSudo=("$@")
 newUserPass=$3
 
 pacman -S sudo --noconfirm
 
 #Create users
-for username in \${usernames[*]}; do
+for username in "\${usernames[@]}"; do
 
 	#Create user
 	useradd -m -G wheel -s /bin/bash $username
@@ -281,7 +281,7 @@ for username in \${usernames[*]}; do
 done
 
 #Create users
-for username in \${usernames[*]}; do
+for username in "\${usernames[@]}"; do
 
 	#Add user to sudo
 	if [ "$addToSudo" == "yes" ]; then
@@ -307,6 +307,7 @@ Install_Bootloader()
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
+#!/bin/bash
 pacman -S grub --noconfirm
 grub-install --recheck /dev/sda
 grub-mkconfig -o /boot/grub/grub.cfg
@@ -339,7 +340,7 @@ OS_Locale $locale
 OS_Timezone $timezone_region $timezone_city
 Root_Password $request_new_root_password
 Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
-Create_Users $usernames $sudo_update_users $request_new_user_password
+Create_Users "${usernames[@]}" "${sudo_update_users[@]}" $request_new_user_password
 exit
 Install_Bootloader
 Reboot

@@ -259,8 +259,8 @@ Create_Users()
 cat <<EOF > /mnt/root/quickScript.sh
 #!/bin/bash
 
-local -n usernames="$1"
-local -n addToSudo="$2"
+local -n usernames=$1
+local -n addToSudo=$2
 newUserPass=$3
 
 pacman -S sudo --noconfirm

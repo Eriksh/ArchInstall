@@ -16,8 +16,8 @@ mirrorlist_country="all"
 mirrorlist_protocol="https"
 rank_mirrorlist_by="rate"
 repository="stable"
-usernames=(erik john)
-sudo_update_users=(erik john)
+usernames=("erik" "john")
+sudo_update_users=("erik" "john")
 request_new_user_password="yes"
 
 ################################################################################
@@ -161,7 +161,7 @@ cat <<EOF > /mnt/root/quickScript.sh
   if [ "$request_new_root_password" == "yes" ]; then
     clear
     echo "Please enter root password:"
-    for i in {1..5}; do command && break || sleep 15; done
+    for i in {1..5}; do passwd root && break || sleep 15; done
   fi
   echo "Updated Root Password..."
   exit
@@ -259,14 +259,14 @@ Create_Users()
 cat <<EOF > /mnt/root/quickScript.sh
 #!/bin/bash
 
-eval usernames="$1"
-eval addToSudo="$2"
+local -n usernames="$1"
+local -n addToSudo="$2"
 newUserPass=$3
 
 pacman -S sudo --noconfirm
 
 #Create users
-for username in "\${usernames[@]}"; do
+for username in ${usernames[*]}; do
 
 	#Create user
 	useradd -m -G wheel -s /bin/bash $username
@@ -281,7 +281,7 @@ for username in "\${usernames[@]}"; do
 done
 
 #Create users
-for username in "\${usernames[@]}"; do
+for username in ${usernames[@]}; do
 
 	#Add user to sudo
 	if [ "$addToSudo" == "yes" ]; then
@@ -340,7 +340,7 @@ OS_Locale $locale
 OS_Timezone $timezone_region $timezone_city
 Root_Password $request_new_root_password
 Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
-Create_Users "${usernames}" "${sudo_update_users}" $request_new_user_password
+Create_Users $usernames $sudo_update_users $request_new_user_password
 exit
 Install_Bootloader
 Reboot

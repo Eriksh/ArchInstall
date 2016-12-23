@@ -16,8 +16,8 @@ mirrorlist_country="all"
 mirrorlist_protocol="https"
 rank_mirrorlist_by="rate"
 repository="stable"
-usernames=("erik" "john")
-sudo_update_users=("erik" "john")
+usernames=( "erik" "john" )
+sudo_update_users=( "erik" "john" )
 request_new_user_password="yes"
 
 ################################################################################
@@ -161,7 +161,7 @@ cat <<EOF > /mnt/root/quickScript.sh
   if [ "$request_new_root_password" == "yes" ]; then
     clear
     echo "Please enter root password:"
-    for i in {1..5}; do passwd root && break || sleep 15; done
+    for i in {1..5}; do passwd root && break || sleep 1; done
   fi
   echo "Updated Root Password..."
   exit

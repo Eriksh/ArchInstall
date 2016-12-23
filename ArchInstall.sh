@@ -255,16 +255,18 @@ arch-chroot /mnt /root/quickScript.sh
 #############################################
 Create_Users()
 {
-  usernames=$1
-	addToSudo=$2
-	newUserPass=$3
 
 cat <<EOF > /mnt/root/quickScript.sh
 #Download sudo
+
+usernames=$1
+addToSudo=$2
+newUserPass=$3
+
 pacman -S sudo --noconfirm
 
 #Create users
-for username in ${usernames[*]}; do
+for username in \${usernames[*]}; do
 
 	#Create user
 	useradd -m -G wheel -s /bin/bash $username
@@ -279,7 +281,7 @@ for username in ${usernames[*]}; do
 done
 
 #Create users
-for username in ${usernames[*]}; do
+for username in \${usernames[*]}; do
 
 	#Add user to sudo
 	if [ "$addToSudo" == "yes" ]; then
@@ -290,7 +292,7 @@ for username in ${usernames[*]}; do
 
 done
 
-echo "Finished adding user"
+echo "Finished adding users"
 exit
 EOF
 

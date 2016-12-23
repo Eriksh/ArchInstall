@@ -259,8 +259,8 @@ Create_Users()
 cat <<EOF > /mnt/root/quickScript.sh
 #!/bin/bash
 
-usernames=("$@")
-addToSudo=("$@")
+usernames=$1
+addToSudo=$2
 newUserPass=$3
 
 pacman -S sudo --noconfirm

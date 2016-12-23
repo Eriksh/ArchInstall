@@ -161,7 +161,7 @@ cat <<EOF > /mnt/root/quickScript.sh
   if [ "$request_new_root_password" == "yes" ]; then
     clear
     echo "Please enter root password:"
-    passwd root
+    for i in {1..5}; do command && break || sleep 15; done
   fi
   echo "Updated Root Password..."
   exit
@@ -259,8 +259,8 @@ Create_Users()
 cat <<EOF > /mnt/root/quickScript.sh
 #!/bin/bash
 
-usernames=$1
-addToSudo=$2
+eval usernames="$1"
+eval addToSudo="$2"
 newUserPass=$3
 
 pacman -S sudo --noconfirm

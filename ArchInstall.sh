@@ -340,5 +340,6 @@ OS_Timezone $timezone_region $timezone_city
 Root_Password $request_new_root_password
 Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
 Create_Users $usernames $sudo_update_users $request_new_user_password
+exit
 Install_Bootloader
 Reboot

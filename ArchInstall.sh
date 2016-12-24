@@ -6,7 +6,7 @@
 select_keymap="us"
 default_editor="vim"
 disk="/dev/sda"
-os_packages="base base-devel"
+os_packages="base base-devel $default_editor"
 os_name="ArchSys"
 locale="en_US.UTF-8"
 timezone_region="US"

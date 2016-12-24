@@ -275,19 +275,16 @@ for username in \${usernames[*]}; do
 	if [ "\$newUserPass" == "yes" ]; then
 		clear
 		echo "Please enter password for user \$username:"
-		passwd \$username
+		for i in {1..5}; do passwd \$username && break || sleep 1; done
 	fi
-
 done
 
 #Create users
-for username in \${usernames[@]}; do
+for username in \${usernames[*]}; do
 
 	#Add user to sudo
 	if [ "\$addToSudo" == "yes" ]; then
-
 		echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
-
 	fi
 
 done

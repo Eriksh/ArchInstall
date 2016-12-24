@@ -183,7 +183,7 @@ Configure_Pacman()
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
-#!/bin/bash
+#Configure Pacman
 pacman -S reflector --noconfirm
 
 if [ "$protocol" == "all" ]; then
@@ -257,8 +257,7 @@ Create_Users()
 {
 
 cat <<EOF > /mnt/root/quickScript.sh
-#!/bin/bash
-
+# Create Users
 usernames=(${!1})
 addToSudo=(${!2})
 newUserPass=$3
@@ -280,13 +279,9 @@ for username in \${usernames[*]}; do
 done
 
 #Create users
-for username in \${usernames[*]}; do
-
+for username in \${addToSudo[*]}; do
 	#Add user to sudo
-	if [ "\$addToSudo" == "yes" ]; then
-		echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
-	fi
-
+	echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
 done
 
 echo "Finished adding users"
@@ -304,7 +299,7 @@ Install_Bootloader()
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
-#!/bin/bash
+#Install Bootloader
 pacman -S grub --noconfirm
 grub-install --recheck /dev/sda
 grub-mkconfig -o /boot/grub/grub.cfg

@@ -269,13 +269,13 @@ pacman -S sudo --noconfirm
 for username in \${usernames[*]}; do
 
 	#Create user
-	useradd -m -G wheel -s /bin/bash $username
+	useradd -m -G wheel -s /bin/bash \$username
 
 	#Create new user password
-	if [ "$newUserPass" == "yes" ]; then
+	if [ "\$newUserPass" == "yes" ]; then
 		clear
-		echo "Please enter password for user $username:"
-		passwd $username
+		echo "Please enter password for user \$username:"
+		passwd \$username
 	fi
 
 done
@@ -284,9 +284,9 @@ done
 for username in \${usernames[@]}; do
 
 	#Add user to sudo
-	if [ "$addToSudo" == "yes" ]; then
+	if [ "\$addToSudo" == "yes" ]; then
 
-		echo "$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
+		echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
 
 	fi
 

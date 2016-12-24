@@ -5,7 +5,8 @@
 #############################################################
 select_keymap="us"
 default_editor="vim"
-os_packages="base base-devel"
+disk="/dev/sda"
+os_packages="base base-devel $default_editor"
 os_name="ArchSys"
 locale="en_US.UTF-8"
 timezone_region="US"
@@ -15,6 +16,9 @@ mirrorlist_country="all"
 mirrorlist_protocol="https"
 rank_mirrorlist_by="rate"
 repository="stable"
+usernames=( "erik" )
+sudo_update_users=( "erik" )
+request_new_user_password="yes"
 
 ################################################################################
 # DO NOT TOUCH ANYTHING BELOW THIS LINE
@@ -55,18 +59,21 @@ Select_Editor()
 #############################################
 Manage_Partition()
 {
-  echo -e "o\nw\n" | fdisk /dev/sda
-  echo -e "n\np\n1\n\n+100mb\na\n\nn\np\n\n\n\n\nw\n" | fdisk /dev/sda
-  partprobe /dev/sda
+  disk_number=$1
+  first_partition=1
+  second_partition=2
+  echo -e "o\nw\n" | fdisk $disk_number
+  echo -e "n\np\n1\n\n+100mb\na\n\nn\np\n\n\n\n\nw\n" | fdisk $disk_number
+  partprobe $disk_number
 
   #format partitions
-  mkfs.ext4 /dev/sda1
-  mkfs.ext4 /dev/sda2
+  mkfs.ext4 $disk_number$first_partition
+  mkfs.ext4 $disk_number$second_partition
 
   #mount filesystem
-  mount /dev/sda2 /mnt
+  mount $disk_number$second_partition /mnt
   mkdir /mnt/boot
-  mount /dev/sda1 /mnt/boot
+  mount $disk_number$first_partition /mnt/boot
 
   echo "Formatting Complete..."
 }
@@ -95,7 +102,6 @@ cat <<EOF > /mnt/root/quickScript.sh
   #Set hostname
   echo "$os_name" > /etc/hostname
   echo "Named OS..."
-  rm /mnt/root/quickScript.sh
   exit
 EOF
 
@@ -116,7 +122,6 @@ cat <<EOF > /mnt/root/quickScript.sh
   echo "LANG=$locale" > /etc/locale.conf
   locale-gen
   echo "Updated Locale..."
-  rm /mnt/root/quickScript.sh
   exit
 EOF
 
@@ -137,7 +142,6 @@ cat <<EOF > /mnt/root/quickScript.sh
   ln -s /usr/share/zoneinfo/$timezone_region/$timezone_city /etc/localtime
   hwclock --systohc
   echo "Updated Timezone..."
-  rm /mnt/root/quickScript.sh
   exit
 EOF
 
@@ -157,10 +161,9 @@ cat <<EOF > /mnt/root/quickScript.sh
   if [ "$request_new_root_password" == "yes" ]; then
     clear
     echo "Please enter root password:"
-    passwd root
+    for i in {1..5}; do passwd root && break || sleep 1; done
   fi
   echo "Updated Root Password..."
-  rm /mnt/root/quickScript.sh
   exit
 EOF
 
@@ -180,7 +183,9 @@ Configure_Pacman()
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
-#Install both HTTP and HTTPS mirrorlists
+#Configure Pacman
+pacman -S reflector --noconfirm
+
 if [ "$protocol" == "all" ]; then
 
   if [ "$country" == "all" ]; then
@@ -239,7 +244,47 @@ pacman-key --populate archlinux
 pacman -Syy
 pacman -Syu --noconfirm
 echo "Configured Pacman.."
-rm /mnt/root/quickScript.sh
+exit
+EOF
+
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
+}
+
+# CREATE USERS
+#############################################
+Create_Users()
+{
+
+cat <<EOF > /mnt/root/quickScript.sh
+# Create Users
+usernames=(${!1})
+addToSudo=(${!2})
+newUserPass=$3
+
+pacman -S sudo --noconfirm
+
+#Create users
+for username in \${usernames[*]}; do
+
+	#Create user
+	useradd -m -G wheel -s /bin/bash \$username
+
+	#Create new user password
+	if [ "\$newUserPass" == "yes" ]; then
+		clear
+		echo "Please enter password for user \$username:"
+		for i in {1..5}; do passwd \$username && break || sleep 1; done
+	fi
+done
+
+#Create users
+for username in \${addToSudo[*]}; do
+	#Add user to sudo
+	echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
+done
+
+echo "Finished adding users"
 exit
 EOF
 
@@ -254,10 +299,11 @@ Install_Bootloader()
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
+#Install Bootloader
 pacman -S grub --noconfirm
 grub-install --recheck /dev/sda
 grub-mkconfig -o /boot/grub/grub.cfg
-echo "Updated Root Password..."
+echo "Installed bootloader..."
 rm /mnt/root/quickScript.sh
 exit
 EOF
@@ -279,12 +325,13 @@ Reboot()
 timedatectl set-ntp true
 Select_Keymap $select_keymap
 Select_Editor $default_editor
-Manage_Partition
+Manage_Partition $disk
 Install_OS "\${os_packages}"
 OS_Name $os_name
 OS_Locale $locale
 OS_Timezone $timezone_region $timezone_city
 Root_Password $request_new_root_password
 Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
+Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
 Install_Bootloader
 Reboot

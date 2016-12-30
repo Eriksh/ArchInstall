@@ -24,11 +24,12 @@ request_new_user_password="yes"
 # Console Setup
 #############################################################
 
+
 #############################################################
 # Security Setup
 #############################################################
 install_clamAV="yes"
-install_firewall="yes"
+install_firewall="ufw"              # none, ufw, iptables
 install_firejail="yes"
 
 ################################################################################
@@ -323,7 +324,25 @@ chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 }
 
-# INSTALL PACAUR
+# CONFIGURE CONSOLE
+#############################################
+Configure_Console()
+{
+
+  pacman -S bash-completion --noconfirm
+
+  #USB Mouse
+  pacman -S gpm xf86-input-synaptics --noconfirm
+  GPM_ARGS="-m /dev/input/mice -t imps2"
+  systemctl enable gpm.service
+
+  #Trackpad
+  pacman -S gpm xf86-input-synaptics --noconfirm
+  GPM_ARGS="-m /dev/input/mice -t ps2"
+  systemctl enable gpm.service
+}
+
+# CONFIGURE SECURITY
 #############################################
 Secure_OS()
 {
@@ -341,11 +360,31 @@ if [ "$clamAV" == "yes" ]; then
 fi
 
 #Add Firewall
-if [ "$firewall" == "yes" ]; then
+if [ "$firewall" == "ufw" ]; then
   pacman -S ufw --noconfirm
   ufw enable
   systemctl enable ufw.service
+elif [ "$firewall" == "iptables" ]; then
+  pacman -S iptables --noconfirm
+  touch /etc/iptables/iptables.rules
+  iptables -F
+  iptables -X
+  iptables -t nat -F
+  iptables -t nat -X
+  iptables -t mangle -F
+  iptables -t mangle -X
+  iptables -t raw -F
+  iptables -t raw -X
+  iptables -t security -F
+  iptables -t security -X
+  iptables -P INPUT ACCEPT
+  iptables -P FORWARD ACCEPT
+  iptables -P OUTPUT ACCEPT
+  systemctl enable ip6tables.service
+else
+  echo "No firewall installed..."
 fi
+
 
 #Add Firejail
 if [ "$firejail" == "yes" ]; then

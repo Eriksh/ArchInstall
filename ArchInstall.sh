@@ -20,6 +20,17 @@ usernames=( "erik" )
 sudo_update_users=( "erik" )
 request_new_user_password="yes"
 
+#############################################################
+# Console Setup
+#############################################################
+
+#############################################################
+# Security Setup
+#############################################################
+install_clamAV="yes"
+install_firewall="yes"
+install_firejail="yes"
+
 ################################################################################
 # DO NOT TOUCH ANYTHING BELOW THIS LINE
 ################################################################################
@@ -312,6 +323,42 @@ chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 }
 
+# INSTALL PACAUR
+#############################################
+Secure_OS()
+{
+  #Arguments
+  clamAV="$1"
+  firewall="$2"
+  firejail="$3"
+
+cat <<EOF > /mnt/root/quickScript.sh
+#Add ClamAV
+if [ "$clamAV" == "yes" ]; then
+  pacman -S clamav --noconfirm
+  freshclam
+  systemctl enable clamd.service
+fi
+
+#Add Firewall
+if [ "$firewall" == "yes" ]; then
+  pacman -S ufw --noconfirm
+  ufw enable
+  systemctl enable ufw.service
+fi
+
+#Add Firejail
+if [ "$firejail" == "yes" ]; then
+  pacman -S firejail --noconfirm
+fi
+
+exit
+EOF
+
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
+}
+
 # REBOOT
 #############################################
 Reboot()
@@ -333,5 +380,6 @@ OS_Timezone $timezone_region $timezone_city
 Root_Password $request_new_root_password
 Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
 Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
+Secure_OS $install_clamAV $install_firewall $install_firejail
 Install_Bootloader
 Reboot

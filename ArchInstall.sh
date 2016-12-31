@@ -21,6 +21,13 @@ sudo_update_users=( "erik" )
 request_new_user_password="yes"
 
 #############################################################
+# Configure Console
+#############################################################
+enable_console_mouseSupport="yes"
+console_mouseType="USB"                       #USB, Trackpad
+install_Pacaur="yes"
+
+#############################################################
 # Security Setup
 #############################################################
 install_clamAV="yes"
@@ -324,17 +331,54 @@ arch-chroot /mnt /root/quickScript.sh
 Configure_Console()
 {
 
+  consoleMouseSupport="$1"
+  consoleMouseType="$2"
+  installPacaur="$3"
+
+cat <<EOF > /mnt/root/quickScript.sh
+  #Install bash-completion
   pacman -S bash-completion --noconfirm
 
-  #USB Mouse
-  pacman -S gpm xf86-input-synaptics --noconfirm
-  GPM_ARGS="-m /dev/input/mice -t imps2"
-  systemctl enable gpm.service
+  #Enable Mouse Support
+  if [ "$consoleMouseSupport" == "yes" ]; then
+    #USB Mouse
+    if [ "$consoleMouseType" == "USB" ]; then
+      pacman -S gpm xf86-input-synaptics --noconfirm
+      GPM_ARGS="-m /dev/input/mice -t imps2"
+      systemctl enable gpm.service
+    fi
+    #Trackpad
+    if [ "$consoleMouseType" == "trackpad" ]; then
+      pacman -S gpm xf86-input-synaptics --noconfirm
+      GPM_ARGS="-m /dev/input/mice -t ps2"
+      systemctl enable gpm.service
+    fi
+  fi
 
-  #Trackpad
-  pacman -S gpm xf86-input-synaptics --noconfirm
-  GPM_ARGS="-m /dev/input/mice -t ps2"
-  systemctl enable gpm.service
+  #Install PacAUR
+  if [ "$installPacaur" == "yes" ]; then
+
+    mkdir -p /tmp/pacaur_install
+    cd /tmp/pacaur_install
+
+    sudo pacman -S binutils make gcc fakeroot --noconfirm
+
+    sudo pacman -S expac yajl git --noconfirm
+
+    curl -o PKGBUILD https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=cower
+    makepkg PKGBUILD --skippgpcheck
+    sudo pacman -U cower*.tar.xz --noconfirm
+
+    curl -o PKGBUILD https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=pacaur
+    makepkg PKGBUILD
+    sudo pacman -U pacaur*.tar.xz --noconfirm
+
+    rm -r /tmp/pacaur_install
+  fi
+EOF
+
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
 }
 
 # CONFIGURE SECURITY
@@ -381,12 +425,12 @@ else
 fi
 
 
-#Add Firejail
-if [ "$firejail" == "yes" ]; then
-  pacman -S firejail --noconfirm
-fi
+  #Add Firejail
+  if [ "$firejail" == "yes" ]; then
+    pacman -S firejail --noconfirm
+  fi
 
-exit
+  exit
 EOF
 
 chmod +x /mnt/root/quickScript.sh
@@ -414,6 +458,7 @@ OS_Timezone $timezone_region $timezone_city
 Root_Password $request_new_root_password
 Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
 Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
+Configure_Console $nable_console_mouseSupport $console_mouseType $install_Pacaur
 Secure_OS $install_clamAV $install_firewall $install_firejail
 Install_Bootloader
 Reboot

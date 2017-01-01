@@ -458,7 +458,7 @@ OS_Timezone $timezone_region $timezone_city
 Root_Password $request_new_root_password
 Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
 Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
-Configure_Console $nable_console_mouseSupport $console_mouseType $install_Pacaur
+Configure_Console $enable_console_mouseSupport $console_mouseType $install_Pacaur
 Secure_OS $install_clamAV $install_firewall $install_firejail
 Install_Bootloader
 Reboot

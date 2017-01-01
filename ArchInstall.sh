@@ -339,10 +339,13 @@ cat <<EOF > /mnt/root/quickScript.sh
   #Install bash-completion
   pacman -S bash-completion --noconfirm
 
+  echo "In loop.......$consoleMouseSupport , $consoleMouseType"
   #Enable Mouse Support
   if [ "$consoleMouseSupport" == "yes" ]; then
+    echo "In mouse support......."
     #USB Mouse
     if [ "$consoleMouseType" == "USB" ]; then
+      echo "In USB......."
       pacman -S gpm xf86-input-synaptics --noconfirm
       GPM_ARGS="-m /dev/input/mice -t imps2"
       systemctl enable gpm.service

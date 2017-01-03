@@ -397,37 +397,54 @@ fi
 
 #Harden IP Stack
 if [ "$ip" == "yes" ]; then
-  echo "#Ignore ICMP broadcast requests" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv4.icmp_echo_ignore_broadcasts = 1" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "# Disable source packet routing" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv4.conf.all.accept_source_route = 0" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv6.conf.all.accept_source_route = 0" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv4.conf.default.accept_source_route = 0" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv6.conf.default.accept_source_route = 0" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "# Ignore send redirects" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv4.conf.all.send_redirects = 0" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv4.conf.default.send_redirects = 0" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "# Block SYN attacks" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv4.tcp_max_syn_backlog = 2048" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv4.tcp_synack_retries = 2" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv4.tcp_syn_retries = 5" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "# Log Martians" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv4.conf.all.log_martians = 1" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv4.icmp_ignore_bogus_error_responses = 1" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "# Ignore ICMP redirects" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv4.conf.all.accept_redirects = 0" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv6.conf.all.accept_redirects = 0" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv4.conf.default.accept_redirects = 0" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv6.conf.default.accept_redirects = 0" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "# Ignore Directed pings" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
-  echo "net.ipv4.icmp_echo_ignore_all = 1" >> /etc/sysctl.d//etc/sysctl.d/10-network-security.conf
+  echo "## TCP SYN cookie protection (default)" >> /etc/sysctl.d/51-net.conf
+  echo "## helps protect against SYN flood attacks" >> /etc/sysctl.d/51-net.conf
+  echo "## only kicks in when net.ipv4.tcp_max_syn_backlog is reached" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.tcp_syncookies = 1" >> /etc/sysctl.d/51-net.conf
+  echo "" >> /etc/sysctl.d/51-net.conf
+  echo "## protect against tcp time-wait assassination hazards" >> /etc/sysctl.d/51-net.conf
+  echo "## drop RST packets for sockets in the time-wait state" >> /etc/sysctl.d/51-net.conf
+  echo "## (not widely supported outside of linux, but conforms to RFC)" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.tcp_rfc1337 = 1" >> /etc/sysctl.d/51-net.conf
+  echo "" >> /etc/sysctl.d/51-net.conf
+  echo "## sets the kernels reverse path filtering mechanism to value 1 (on)" >> /etc/sysctl.d/51-net.conf
+  echo "## will do source validation of the packet's recieved from all the interfaces on the machine" >> /etc/sysctl.d/51-net.conf
+  echo "## protects from attackers that are using ip spoofing methods to do harm" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.conf.default.rp_filter = 1" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.conf.all.rp_filter = 1" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv6.conf.default.rp_filter = 1" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv6.conf.all.rp_filter = 1" >> /etc/sysctl.d/51-net.conf
+  echo "" >> /etc/sysctl.d/51-net.conf
+  echo "## tcp timestamps" >> /etc/sysctl.d/51-net.conf
+  echo "## + protect against wrapping sequence numbers (at gigabit speeds)" >> /etc/sysctl.d/51-net.conf
+  echo "## + round trip time calculation implemented in TCP" >> /etc/sysctl.d/51-net.conf
+  echo "## - causes extra overhead and allows uptime detection by scanners like nmap" >> /etc/sysctl.d/51-net.conf
+  echo "## enable @ gigabit speeds" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.tcp_timestamps = 0" >> /etc/sysctl.d/51-net.conf
+  echo "" >> /etc/sysctl.d/51-net.conf
+  echo "## log martian packets" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.conf.default.log_martians = 1" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.conf.all.log_martians = 1" >> /etc/sysctl.d/51-net.conf
+  echo "" >> /etc/sysctl.d/51-net.conf
+  echo "## ignore echo broadcast requests to prevent being part of smurf attacks (default)" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.icmp_echo_ignore_broadcasts = 1" >> /etc/sysctl.d/51-net.conf
+  echo "" >> /etc/sysctl.d/51-net.conf
+  echo "## ignore bogus icmp errors (default)" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.icmp_ignore_bogus_error_responses = 1" >> /etc/sysctl.d/51-net.conf
+  echo "" >> /etc/sysctl.d/51-net.conf
+  echo "## send redirects (not a router, disable it)" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.conf.default.send_redirects = 0" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.conf.all.send_redirects = 0" >> /etc/sysctl.d/51-net.conf
+  echo "" >> /etc/sysctl.d/51-net.conf
+  echo "## ICMP routing redirects (only secure)" >> /etc/sysctl.d/51-net.conf
+  echo "#net.ipv4.conf.default.secure_redirects = 1 (default)" >> /etc/sysctl.d/51-net.conf
+  echo "#net.ipv4.conf.all.secure_redirects = 1 (default)" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.conf.default.accept_redirects=0" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.conf.all.accept_redirects=0" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv6.conf.default.accept_redirects=0" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv6.conf.all.accept_redirects=0" >> /etc/sysctl.d/51-net.conf
 fi
+
 
 #Add Firewall
 if [ "$firewall" == "ufw" ]; then

@@ -21,10 +21,18 @@ sudo_update_users=( "erik" )
 request_new_user_password="yes"
 
 #############################################################
+# Configure Console
+#############################################################
+enable_console_mouseSupport="yes"
+console_mouseType="usb"                   #usb, trackpad, ps2
+
+#############################################################
 # Security Setup
 #############################################################
 install_clamAV="yes"
-install_firewall="ufw"              # none, ufw, iptables
+harden_kernal="yes"
+harden_ipStack="yes"
+install_firewall="ufw"                  # none, ufw, iptables
 install_firejail="yes"
 
 ################################################################################
@@ -194,29 +202,18 @@ cat <<EOF > /mnt/root/quickScript.sh
 pacman -S reflector --noconfirm
 
 if [ "$protocol" == "all" ]; then
-
   if [ "$country" == "all" ]; then
-
     reflector --verbose --protocol http --protocol https --sort $rank_by --save /etc/pacman.d/mirrorlist
-
   else
-
     reflector --verbose --country "$country" --protocol http --protocol https --sort $rank_by --save /etc/pacman.d/mirrorlist
-
   fi
 
 else
-
   if [ "$country" == "all" ]; then
-
     reflector --verbose --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
-
   else
-
     reflector --verbose --country "$country" --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
-
   fi
-
 fi
 
 #Select Repository
@@ -324,17 +321,47 @@ arch-chroot /mnt /root/quickScript.sh
 Configure_Console()
 {
 
+  consoleMouseSupport="$1"
+  consoleMouseType="$2"
+  installPacaur="$3"
+
+cat <<EOF > /mnt/root/quickScript.sh
+  #Install bash-completion
   pacman -S bash-completion --noconfirm
 
-  #USB Mouse
-  pacman -S gpm xf86-input-synaptics --noconfirm
-  GPM_ARGS="-m /dev/input/mice -t imps2"
-  systemctl enable gpm.service
+  echo "In loop.......$consoleMouseSupport , $consoleMouseType"
+  #Enable Mouse Support
+  if [ "$consoleMouseSupport" == "yes" ]; then
+    echo "In mouse support......."
+    #USB Mouse
+    if [ "$consoleMouseType" == "usb" ]; then
+      echo "In USB......."
+      pacman -S gpm xf86-input-synaptics --noconfirm
+      GPM_ARGS="-m /dev/input/mice -t imps2"
+      systemctl enable gpm.service
 
-  #Trackpad
-  pacman -S gpm xf86-input-synaptics --noconfirm
-  GPM_ARGS="-m /dev/input/mice -t ps2"
-  systemctl enable gpm.service
+    #Trackpad
+    elif [ "$consoleMouseType" == "trackpad" ]; then
+      pacman -S gpm xf86-input-synaptics --noconfirm
+      GPM_ARGS="-m /dev/input/mice -t ps2"
+      systemctl enable gpm.service
+
+    #PS2
+    elif [ "$consoleMouseType" == "ps2" ]; then
+      pacman -S gpm xf86-input-synaptics --noconfirm
+      GPM_ARGS="-m /dev/psaux -t ps2"
+      systemctl enable gpm.service
+
+    #PS2
+    else
+      echo "Mouse support was not installed..."
+    fi
+  fi
+
+EOF
+
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
 }
 
 # CONFIGURE SECURITY
@@ -343,8 +370,12 @@ Secure_OS()
 {
   #Arguments
   clamAV="$1"
-  firewall="$2"
-  firejail="$3"
+
+  kernel="$2"
+  ip="$3"
+  firewall="$4"
+  firejail="$5"
+
 
 cat <<EOF > /mnt/root/quickScript.sh
 #Add ClamAV
@@ -354,6 +385,68 @@ if [ "$clamAV" == "yes" ]; then
   systemctl enable clamd.service
 fi
 
+#Harden kernel
+if [ "$kernel" == "yes" ]; then
+  sed -i '15 s/.*/Storage=none/'           /etc/systemd/coredump.conf
+  systemctl deamon-reload
+
+  cp /usr/lib/sysctl.d/50-coredump.conf /etc/sysctl.d
+  cp /usr/lib/sysctl.d/50-default.conf /etc/sysctl.d
+
+  touch /etc/sysctl.d/50-dmesg-restrict.conf
+  echo "kernel.dmesg_restrict = 1" >> /etc/sysctl.d/50-dmesg-restrict.conf
+fi
+
+#Harden IP Stack
+if [ "$ip" == "yes" ]; then
+  echo "## TCP SYN cookie protection (default)" >> /etc/sysctl.d/51-net.conf
+  echo "## helps protect against SYN flood attacks" >> /etc/sysctl.d/51-net.conf
+  echo "## only kicks in when net.ipv4.tcp_max_syn_backlog is reached" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.tcp_syncookies = 1" >> /etc/sysctl.d/51-net.conf
+  echo "" >> /etc/sysctl.d/51-net.conf
+  echo "## protect against tcp time-wait assassination hazards" >> /etc/sysctl.d/51-net.conf
+  echo "## drop RST packets for sockets in the time-wait state" >> /etc/sysctl.d/51-net.conf
+  echo "## (not widely supported outside of linux, but conforms to RFC)" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.tcp_rfc1337 = 1" >> /etc/sysctl.d/51-net.conf
+  echo "" >> /etc/sysctl.d/51-net.conf
+  echo "## sets the kernels reverse path filtering mechanism to value 1 (on)" >> /etc/sysctl.d/51-net.conf
+  echo "## will do source validation of the packet's recieved from all the interfaces on the machine" >> /etc/sysctl.d/51-net.conf
+  echo "## protects from attackers that are using ip spoofing methods to do harm" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.conf.default.rp_filter = 1" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.conf.all.rp_filter = 1" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv6.conf.default.rp_filter = 1" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv6.conf.all.rp_filter = 1" >> /etc/sysctl.d/51-net.conf
+  echo "" >> /etc/sysctl.d/51-net.conf
+  echo "## tcp timestamps" >> /etc/sysctl.d/51-net.conf
+  echo "## + protect against wrapping sequence numbers (at gigabit speeds)" >> /etc/sysctl.d/51-net.conf
+  echo "## + round trip time calculation implemented in TCP" >> /etc/sysctl.d/51-net.conf
+  echo "## - causes extra overhead and allows uptime detection by scanners like nmap" >> /etc/sysctl.d/51-net.conf
+  echo "## enable @ gigabit speeds" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.tcp_timestamps = 0" >> /etc/sysctl.d/51-net.conf
+  echo "" >> /etc/sysctl.d/51-net.conf
+  echo "## log martian packets" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.conf.default.log_martians = 1" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.conf.all.log_martians = 1" >> /etc/sysctl.d/51-net.conf
+  echo "" >> /etc/sysctl.d/51-net.conf
+  echo "## ignore echo broadcast requests to prevent being part of smurf attacks (default)" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.icmp_echo_ignore_broadcasts = 1" >> /etc/sysctl.d/51-net.conf
+  echo "" >> /etc/sysctl.d/51-net.conf
+  echo "## ignore bogus icmp errors (default)" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.icmp_ignore_bogus_error_responses = 1" >> /etc/sysctl.d/51-net.conf
+  echo "" >> /etc/sysctl.d/51-net.conf
+  echo "## send redirects (not a router, disable it)" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.conf.default.send_redirects = 0" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.conf.all.send_redirects = 0" >> /etc/sysctl.d/51-net.conf
+  echo "" >> /etc/sysctl.d/51-net.conf
+  echo "## ICMP routing redirects (only secure)" >> /etc/sysctl.d/51-net.conf
+  echo "#net.ipv4.conf.default.secure_redirects = 1 (default)" >> /etc/sysctl.d/51-net.conf
+  echo "#net.ipv4.conf.all.secure_redirects = 1 (default)" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.conf.default.accept_redirects=0" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv4.conf.all.accept_redirects=0" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv6.conf.default.accept_redirects=0" >> /etc/sysctl.d/51-net.conf
+  echo "net.ipv6.conf.all.accept_redirects=0" >> /etc/sysctl.d/51-net.conf
+fi
+
 #Add Firewall
 if [ "$firewall" == "ufw" ]; then
   pacman -S ufw --noconfirm
@@ -361,20 +454,11 @@ if [ "$firewall" == "ufw" ]; then
   systemctl enable ufw.service
 elif [ "$firewall" == "iptables" ]; then
   pacman -S iptables --noconfirm
-  touch /etc/iptables/iptables.rules
-  iptables -F
-  iptables -X
-  iptables -t nat -F
-  iptables -t nat -X
-  iptables -t mangle -F
-  iptables -t mangle -X
-  iptables -t raw -F
-  iptables -t raw -X
-  iptables -t security -F
-  iptables -t security -X
-  iptables -P INPUT ACCEPT
-  iptables -P FORWARD ACCEPT
-  iptables -P OUTPUT ACCEPT
+  iptables -N TCP
+  iptables -N UDP
+  iptables -P FORWARD DROP && iptables -P OUTPUT ACCEPT && iptables -P INPUT DROP && iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT && iptables -A INPUT -i lo -j ACCEPT && iptables -A INPUT -m conntrack --ctstate INVALID -j DROP && iptables -A INPUT -p icmp --icmp-type 8 -m conntrack --ctstate NEW -j ACCEPT && iptables -A INPUT -p udp -m conntrack --ctstate NEW -j UDP && iptables -A INPUT -p tcp --syn -m conntrack --ctstate NEW -j TCP && iptables -A INPUT -p udp -j REJECT --reject-with icmp-port-unreachable && iptables -A INPUT -p tcp -j REJECT --reject-with tcp-reset && iptables -A INPUT -j REJECT --reject-with icmp-proto-unreachable && iptables -t raw -I PREROUTING -m rpfilter --invert -j DROP && iptables -I TCP -p tcp -m recent --update --seconds 60 --name TCP-PORTSCAN -j REJECT --reject-with tcp-reset && iptables -D INPUT -p tcp -j REJECT --reject-with tcp-reset && iptables -A INPUT -p tcp -m recent --set --name TCP-PORTSCAN -j REJECT --reject-with tcp-reset && iptables -I UDP -p udp -m recent --update --seconds 60 --name UDP-PORTSCAN -j REJECT --reject-with icmp-port-unreachable && iptables -D INPUT -p udp -j REJECT --reject-with icmp-port-unreachable && iptables -A INPUT -p udp -m recent --set --name UDP-PORTSCAN -j REJECT --reject-with icmp-port-unreachable
+  iptables-save > /etc/iptables/iptables.rules
+
   systemctl enable ip6tables.service
 else
   echo "No firewall installed..."
@@ -414,6 +498,8 @@ OS_Timezone $timezone_region $timezone_city
 Root_Password $request_new_root_password
 Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
 Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
-Secure_OS $install_clamAV $install_firewall $install_firejail
+Configure_Console $enable_console_mouseSupport $console_mouseType
+Secure_OS $install_clamAV $harden_kernal $harden_ipStack $install_firewall $install_firejail
+
 Install_Bootloader
 Reboot

@@ -370,10 +370,12 @@ Secure_OS()
 {
   #Arguments
   clamAV="$1"
+
   kernel="$2"
   ip="$3"
   firewall="$4"
   firejail="$5"
+
 
 cat <<EOF > /mnt/root/quickScript.sh
 #Add ClamAV
@@ -445,7 +447,6 @@ if [ "$ip" == "yes" ]; then
   echo "net.ipv6.conf.all.accept_redirects=0" >> /etc/sysctl.d/51-net.conf
 fi
 
-
 #Add Firewall
 if [ "$firewall" == "ufw" ]; then
   pacman -S ufw --noconfirm
@@ -457,10 +458,12 @@ elif [ "$firewall" == "iptables" ]; then
   iptables -N UDP
   iptables -P FORWARD DROP && iptables -P OUTPUT ACCEPT && iptables -P INPUT DROP && iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT && iptables -A INPUT -i lo -j ACCEPT && iptables -A INPUT -m conntrack --ctstate INVALID -j DROP && iptables -A INPUT -p icmp --icmp-type 8 -m conntrack --ctstate NEW -j ACCEPT && iptables -A INPUT -p udp -m conntrack --ctstate NEW -j UDP && iptables -A INPUT -p tcp --syn -m conntrack --ctstate NEW -j TCP && iptables -A INPUT -p udp -j REJECT --reject-with icmp-port-unreachable && iptables -A INPUT -p tcp -j REJECT --reject-with tcp-reset && iptables -A INPUT -j REJECT --reject-with icmp-proto-unreachable && iptables -t raw -I PREROUTING -m rpfilter --invert -j DROP && iptables -I TCP -p tcp -m recent --update --seconds 60 --name TCP-PORTSCAN -j REJECT --reject-with tcp-reset && iptables -D INPUT -p tcp -j REJECT --reject-with tcp-reset && iptables -A INPUT -p tcp -m recent --set --name TCP-PORTSCAN -j REJECT --reject-with tcp-reset && iptables -I UDP -p udp -m recent --update --seconds 60 --name UDP-PORTSCAN -j REJECT --reject-with icmp-port-unreachable && iptables -D INPUT -p udp -j REJECT --reject-with icmp-port-unreachable && iptables -A INPUT -p udp -m recent --set --name UDP-PORTSCAN -j REJECT --reject-with icmp-port-unreachable
   iptables-save > /etc/iptables/iptables.rules
+
   systemctl enable ip6tables.service
 else
   echo "No firewall installed..."
 fi
+
 
 #Add Firejail
 if [ "$firejail" == "yes" ]; then
@@ -497,5 +500,6 @@ Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $r
 Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
 Configure_Console $enable_console_mouseSupport $console_mouseType
 Secure_OS $install_clamAV $harden_kernal $harden_ipStack $install_firewall $install_firejail
+
 Install_Bootloader
 Reboot

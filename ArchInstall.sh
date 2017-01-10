@@ -104,6 +104,7 @@ cat <<EOF > /mnt/root/quickScript.sh
   exit
 EOF
 
+#Run File
 chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 }
@@ -124,6 +125,7 @@ cat <<EOF > /mnt/root/quickScript.sh
   exit
 EOF
 
+#Run File
 chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 }
@@ -140,10 +142,16 @@ cat <<EOF > /mnt/root/quickScript.sh
   #Set timezone
   ln -s /usr/share/zoneinfo/$timezone_region/$timezone_city /etc/localtime
   hwclock --systohc
+
+  #Clock Synchronization
+  timedatectl set-ntp true
+
+  #Output Message
   echo "Updated Timezone..."
   exit
 EOF
 
+#Run File
 chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 }
@@ -164,6 +172,47 @@ cat <<EOF > /mnt/root/quickScript.sh
   fi
   echo "Updated Root Password..."
   exit
+EOF
+
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
+}
+
+# CREATE USERS
+#############################################
+Create_Users()
+{
+
+cat <<EOF > /mnt/root/quickScript.sh
+# Create Users
+usernames=(${!1})
+addToSudo=(${!2})
+newUserPass=$3
+
+pacman -S sudo --noconfirm
+
+#Create users
+for username in \${usernames[*]}; do
+
+	#Create user
+	useradd -m -G wheel -s /bin/bash \$username
+
+	#Create new user password
+	if [ "\$newUserPass" == "yes" ]; then
+		clear
+		echo "Please enter password for user \$username:"
+		for i in {1..5}; do passwd \$username && break || sleep 1; done
+	fi
+done
+
+#Create users
+for username in \${addToSudo[*]}; do
+	#Add user to sudo
+	echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
+done
+
+echo "Finished adding users"
+exit
 EOF
 
 chmod +x /mnt/root/quickScript.sh
@@ -232,47 +281,6 @@ pacman-key --populate archlinux
 pacman -Syy
 pacman -Syu --noconfirm
 echo "Configured Pacman.."
-exit
-EOF
-
-chmod +x /mnt/root/quickScript.sh
-arch-chroot /mnt /root/quickScript.sh
-}
-
-# CREATE USERS
-#############################################
-Create_Users()
-{
-
-cat <<EOF > /mnt/root/quickScript.sh
-# Create Users
-usernames=(${!1})
-addToSudo=(${!2})
-newUserPass=$3
-
-pacman -S sudo --noconfirm
-
-#Create users
-for username in \${usernames[*]}; do
-
-	#Create user
-	useradd -m -G wheel -s /bin/bash \$username
-
-	#Create new user password
-	if [ "\$newUserPass" == "yes" ]; then
-		clear
-		echo "Please enter password for user \$username:"
-		for i in {1..5}; do passwd \$username && break || sleep 1; done
-	fi
-done
-
-#Create users
-for username in \${addToSudo[*]}; do
-	#Add user to sudo
-	echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
-done
-
-echo "Finished adding users"
 exit
 EOF
 
@@ -489,12 +497,12 @@ case $response in
         Select_Keymap $keymap                             #Production Ready!
         Manage_Partition $disk                            #Production Ready!
         Install_OS "\${os_packages}"                      #Production Ready!
-        OS_Name $os_name
-        OS_Locale $locale
-        OS_Timezone $timezone_region $timezone_city
+        OS_Name $os_name                                  #Production Ready!
+        OS_Locale $locale                                 #Production Ready!
+        OS_Timezone $timezone_region $timezone_city       #Production Ready!
         Root_Password $request_new_root_password
-        Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
         Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
+        Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
         Configure_Console $enable_console_mouseSupport $console_mouseType
         Secure_OS $install_clamAV $harden_kernal $harden_ipStack $install_firewall $install_firejail
         Install_Bootloader

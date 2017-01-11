@@ -118,7 +118,7 @@ OS_Locale()
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
   #Set locale
-  sed -i "/\"$locale"/,/Include/"'s/^#//' /etc/locale.gen
+  sed -i '/^#.* $locale /s/^#//' /etc/locale.gen
   echo "LANG=$locale" > /etc/locale.conf
   locale-gen
   echo "Updated Locale..."

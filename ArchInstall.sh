@@ -493,8 +493,8 @@ arch-chroot /mnt /root/quickScript.sh
 Reboot()
 {
   clear
-  read -p "Installation of the OS has completed.  Please remove the installation media from your
-  PC. Press any key to start the system..."
+  read -rsp $'Installation of the OS has completed.  Please remove the installation media from your PC.
+  Press any key to start the system...\n' -n1 key
   umount -R /mnt
   reboot
 }

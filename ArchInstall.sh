@@ -521,14 +521,14 @@ case $response in
         Install_OS "\${os_packages}"
         OS_Name $os_name
         OS_Locale $locale
-        #OS_Timezone $timezone_region $timezone_city
-        #Root_Password $new_root_password
-        #Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
-        #Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
-        #Configure_Console $console_mouseSupport $console_mouseType
-        #Secure_OS $install_clamAV $harden_kernal $harden_ipStack $install_firewall $install_firejail
-        #Install_Bootloader
-        #Reboot
+        OS_Timezone $timezone_region $timezone_city
+        Root_Password $new_root_password
+        Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
+        Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
+        Configure_Console $console_mouseSupport $console_mouseType
+        Secure_OS $install_clamAV $harden_kernal $harden_ipStack $install_firewall $install_firejail
+        Install_Bootloader
+        Reboot
         ;;
     *)
         echo

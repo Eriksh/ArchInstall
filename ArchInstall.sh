@@ -305,6 +305,9 @@ Configure_Console()
 cat <<EOF > /mnt/root/quickScript.sh
   #Configure Console
   pacman -S bash-completion --noconfirm
+  
+  #Download network programs
+  pacman -S iw wpa_supplicant dialog --noconfirm
 
   #Enable Console Mouse Support
   if [ "$consoleMouseSupport" == "yes" ]; then

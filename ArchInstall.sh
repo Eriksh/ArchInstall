@@ -465,17 +465,16 @@ EOF
 chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 }
-
-# INSTALL BOOTLOADER
-#############################################
+/dev/sda#########
 Install_Bootloader()
 {
+  disk=$1
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
 #Install Bootloader
 pacman -S grub --noconfirm
-grub-install --recheck /dev/sda
+grub-install --recheck $disk
 grub-mkconfig -o /boot/grub/grub.cfg
 echo "Installed bootloader..."
 rm /mnt/root/quickScript.sh
@@ -527,7 +526,7 @@ case $response in
         Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
         Configure_Console $console_mouseSupport $console_mouseType
         Secure_OS $install_clamAV $harden_kernal $harden_ipStack $install_firewall $install_firejail
-        Install_Bootloader
+        Install_Bootloader $disk
         Reboot
         ;;
     *)

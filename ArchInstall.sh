@@ -101,6 +101,7 @@ cat <<EOF > /mnt/root/quickScript.sh
   #Set hostname
   echo "$os_name" > /etc/hostname
   echo "Named OS..."
+  rm /root/quickScript.sh
   exit
 EOF
 
@@ -122,6 +123,7 @@ cat <<EOF > /mnt/root/quickScript.sh
   echo "LANG=$locale" > /etc/locale.conf
   locale-gen
   echo "Updated Locale..."
+  rm /root/quickScript.sh
   exit
 EOF
 
@@ -148,6 +150,7 @@ cat <<EOF > /mnt/root/quickScript.sh
 
   #Output Message
   echo "Updated Timezone..."
+  rm /root/quickScript.sh
   exit
 EOF
 
@@ -171,6 +174,7 @@ cat <<EOF > /mnt/root/quickScript.sh
     for i in {1..5}; do passwd root && break || sleep 1; done
   fi
   echo "Updated Root Password..."
+  rm /root/quickScript.sh
   exit
 EOF
 
@@ -213,6 +217,7 @@ for username in \${addToSudo[*]}; do
 done
 
 echo "Users added..."
+rm /root/quickScript.sh
 exit
 EOF
 
@@ -284,6 +289,7 @@ pacman-key --populate archlinux
 pacman -Syy
 pacman -Syu --noconfirm
 echo "Configured Pacman..."
+rm /root/quickScript.sh
 exit
 EOF
 
@@ -305,7 +311,7 @@ Configure_Console()
 cat <<EOF > /mnt/root/quickScript.sh
   #Configure Console
   pacman -S bash-completion --noconfirm
-  
+
   #Download network programs
   pacman -S iw wpa_supplicant dialog --noconfirm
 
@@ -339,6 +345,7 @@ cat <<EOF > /mnt/root/quickScript.sh
 
   #End Script
   echo "Console Configured..."
+  rm /root/quickScript.sh
   exit
 EOF
 
@@ -461,6 +468,7 @@ cat <<EOF > /mnt/root/quickScript.sh
   fi
 
 echo "Security Configured..."
+rm /root/quickScript.sh
 exit
 EOF
 
@@ -468,7 +476,9 @@ EOF
 chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 }
-/dev/sda#########
+
+# Install Bootloader
+#############################################
 Install_Bootloader()
 {
   disk=$1
@@ -480,7 +490,7 @@ pacman -S grub --noconfirm
 grub-install --recheck $disk
 grub-mkconfig -o /boot/grub/grub.cfg
 echo "Installed bootloader..."
-rm /mnt/root/quickScript.sh
+rm /root/quickScript.sh
 exit
 EOF
 
@@ -525,6 +535,8 @@ case $response in
         OS_Locale $locale
         OS_Timezone $timezone_region $timezone_city
         Root_Password $new_root_password
+        #get time
+        #install pacaur
         Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
         Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
         Configure_Console $console_mouseSupport $console_mouseType

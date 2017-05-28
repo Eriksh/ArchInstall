@@ -5,7 +5,7 @@
 #############################################################
 keymap="us"
 disk="/dev/sda"
-os_packages="base base-devel"
+os_packages="base base-devel git"
 os_name="ArchSys"
 locale="en_US.UTF-8"
 timezone_region="US"
@@ -18,6 +18,7 @@ repository="stable"
 usernames=( "erik" )
 sudo_update_users=( "erik" )
 request_new_user_password="yes"
+arch_aur_program="pacaur"
 
 #############################################################
 # Configure Console
@@ -100,9 +101,11 @@ OS_Name()
 cat <<EOF > /mnt/root/quickScript.sh
   #Set hostname
   echo "$os_name" > /etc/hostname
-  echo "Named OS..."
-  rm /root/quickScript.sh
-  exit
+
+#End Script
+echo "Named OS..."
+rm /root/quickScript.sh
+exit
 EOF
 
 #Run File
@@ -122,9 +125,11 @@ cat <<EOF > /mnt/root/quickScript.sh
   sed -i '/$locale/s/^#//g' /etc/locale.gen
   echo "LANG=$locale" > /etc/locale.conf
   locale-gen
-  echo "Updated Locale..."
-  rm /root/quickScript.sh
-  exit
+
+#End Script
+echo "Updated Locale..."
+rm /root/quickScript.sh
+exit
 EOF
 
 #Run File
@@ -148,10 +153,31 @@ cat <<EOF > /mnt/root/quickScript.sh
   #Clock Synchronization
   timedatectl set-ntp true
 
-  #Output Message
-  echo "Updated Timezone..."
-  rm /root/quickScript.sh
-  exit
+#End Script
+echo "Updated Timezone..."
+rm /root/quickScript.sh
+exit
+EOF
+
+#Run File
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
+}
+
+# NETWORK TIME PROTOCOL
+#############################################
+Configure_Network_Time_Protocol()
+{
+#Create File
+cat <<EOF > /mnt/root/quickScript.sh
+  #Setup NTP
+  pacman -S ntp --noconfirm
+  systemctl enable ntpd.service
+
+#End Script
+echo "Configured Network Time Protocol..."
+rm /root/quickScript.sh
+exit
 EOF
 
 #Run File
@@ -173,9 +199,11 @@ cat <<EOF > /mnt/root/quickScript.sh
     echo "Please enter root password:"
     for i in {1..5}; do passwd root && break || sleep 1; done
   fi
-  echo "Updated Root Password..."
-  rm /root/quickScript.sh
-  exit
+
+#End Script
+echo "Updated Root Password..."
+rm /root/quickScript.sh
+exit
 EOF
 
 #Run File
@@ -189,15 +217,15 @@ Create_Users()
 {
 
 cat <<EOF > /mnt/root/quickScript.sh
-# Create Users
-usernames=(${!1})
-addToSudo=(${!2})
-newUserPass=$3
+  # Create Users
+  usernames=(${!1})
+  addToSudo=(${!2})
+  newUserPass=$3
 
-pacman -S sudo --noconfirm
+  pacman -S sudo --noconfirm
 
-#Create users
-for username in \${usernames[*]}; do
+  #Create users
+  for username in \${usernames[*]}; do
 
 	#Create user
 	useradd -m -G wheel -s /bin/bash \$username
@@ -208,14 +236,15 @@ for username in \${usernames[*]}; do
 		echo "Please enter password for user \$username:"
 		for i in {1..5}; do passwd \$username && break || sleep 1; done
 	fi
-done
+  done
 
-#Create users
-for username in \${addToSudo[*]}; do
-	#Add user to sudo
-	echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
-done
+  #Create users
+  for username in \${addToSudo[*]}; do
+	   #Add user to sudo
+	   echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
+  done
 
+#End Script
 echo "Users added..."
 rm /root/quickScript.sh
 exit
@@ -238,57 +267,60 @@ Configure_Pacman()
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
-#Configure Pacman
-pacman -S reflector --noconfirm
+  #Configure Pacman
+  pacman -S reflector --noconfirm
 
-#Select New Mirrorlist
-if [ "$protocol" == "all" ]; then
-  if [ "$country" == "all" ]; then
-    reflector --verbose --protocol http --protocol https --sort $rank_by --save /etc/pacman.d/mirrorlist
+  #Select New Mirrorlist
+  if [ "$protocol" == "all" ]; then
+    if [ "$country" == "all" ]; then
+      reflector --verbose --protocol http --protocol https --sort $rank_by --save /etc/pacman.d/mirrorlist
+    else
+      reflector --verbose --country "$country" --protocol http --protocol https --sort $rank_by --save /etc/pacman.d/mirrorlist
+    fi
+
   else
-    reflector --verbose --country "$country" --protocol http --protocol https --sort $rank_by --save /etc/pacman.d/mirrorlist
+    if [ "$country" == "all" ]; then
+      reflector --verbose --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
+    else
+      reflector --verbose --country "$country" --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
+    fi
   fi
 
-else
-  if [ "$country" == "all" ]; then
-    reflector --verbose --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
+  #Select Repository
+  if [ "$repository" == "stable" ]; then
+    sed -i "/\[core\]/,/Include/"'s/^#//' /etc/pacman.conf
+    sed -i "/\[extra\]/,/Include/"'s/^#//' /etc/pacman.conf
+    sed -i "/\[community\]/,/Include/"'s/^#//' /etc/pacman.conf
+    sed -i "/\[multilib\]/,/Include/"'s/^#//' /etc/pacman.conf
+    sed -i "/\[testing\]/,/Include/"'s/^/#/' /etc/pacman.conf
+    sed -i "/\[community-testing\]/,/Include/"'s/^/#/' /etc/pacman.conf
+    sed -i "/\[multilib-testing\]/,/Include/"'s/^/#/' /etc/pacman.conf
+
+  elif [ "$repository" == "testing" ]; then
+    sed -i "/\[core]/,/Include/"'s/^/#/' /etc/pacman.conf
+    sed -i "/\[extra]/,/Include/"'s/^/#/' /etc/pacman.conf
+    sed -i "/\[community]/,/Include/"'s/^/#/' /etc/pacman.conf
+    sed -i "/\[multilib]/,/Include/"'s/^/#/' /etc/pacman.conf
+    sed -i "/\[testing]/,/Include/"'s/^#//' /etc/pacman.conf
+    sed -i "/\[community-testing]/,/Include/"'s/^#//' /etc/pacman.conf
+    sed -i "/\[multilib-testing]/,/Include/"'s/^#//' /etc/pacman.conf
+
   else
-    reflector --verbose --country "$country" --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
+    echo "Invalid repository selected: $repository"
+    exit
+
   fi
-fi
 
-#Select Repository
-if [ "$repository" == "stable" ]; then
-  sed -i "/\[core\]/,/Include/"'s/^#//' /etc/pacman.conf
-  sed -i "/\[extra\]/,/Include/"'s/^#//' /etc/pacman.conf
-  sed -i "/\[community\]/,/Include/"'s/^#//' /etc/pacman.conf
-  sed -i "/\[multilib\]/,/Include/"'s/^#//' /etc/pacman.conf
-  sed -i "/\[testing\]/,/Include/"'s/^/#/' /etc/pacman.conf
-  sed -i "/\[community-testing\]/,/Include/"'s/^/#/' /etc/pacman.conf
-  sed -i "/\[multilib-testing\]/,/Include/"'s/^/#/' /etc/pacman.conf
+  #Refresh and repopulate pacman
+  pacman-key --init
+  pacman-key --refresh-key
+  pacman-key --populate archlinux
+  pacman -Syy
+  pacman -Syu --noconfirm
+  echo "Configured Pacman..."
 
-elif [ "$repository" == "testing" ]; then
-  sed -i "/\[core]/,/Include/"'s/^/#/' /etc/pacman.conf
-  sed -i "/\[extra]/,/Include/"'s/^/#/' /etc/pacman.conf
-  sed -i "/\[community]/,/Include/"'s/^/#/' /etc/pacman.conf
-  sed -i "/\[multilib]/,/Include/"'s/^/#/' /etc/pacman.conf
-  sed -i "/\[testing]/,/Include/"'s/^#//' /etc/pacman.conf
-  sed -i "/\[community-testing]/,/Include/"'s/^#//' /etc/pacman.conf
-  sed -i "/\[multilib-testing]/,/Include/"'s/^#//' /etc/pacman.conf
-
-else
-  echo "Invalid repository selected: $repository"
-  exit
-
-fi
-
-#Refresh and repopulate pacman
-pacman-key --init
-pacman-key --refresh-key
-pacman-key --populate archlinux
-pacman -Syy
-pacman -Syu --noconfirm
-echo "Configured Pacman..."
+#End Script
+echo "Pacman Configured..."
 rm /root/quickScript.sh
 exit
 EOF
@@ -298,6 +330,70 @@ chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 }
 
+# INSTALL AUR SOFTWARE
+#############################################
+Arch_AUR()
+{
+
+  aurSoftware="$1"
+
+cat <<EOF > /mnt/root/quickScript.sh
+  #This code came from Stefan Tatschner install-pacaur.sh script
+  #Setup AUR
+
+  #Install PACAUR
+  if [ "$aurSoftware" == "pacaur" ]; then
+    buildroot="$(mktemp -d)"
+
+    # Ask for user passwort once, see sudo(8).
+    sudo -v
+    mkdir -p "$buildroot"
+    cd "$buildroot" || exit 1
+
+    # Arch Linux ARM provides a cower package for the RPI!
+    # Let's either install 'cower' via pacman, or build it.
+    if [ "$(uname -n)" = 'alarmpi' ]; then
+	     sudo pacman -S cower
+    else
+	     # Fetch Dave Reisner's key to be able to verify cower.
+	     gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys 487EACC08557AD082088DABA1EB2638FF56C0C53
+	     git clone --depth=1 "https://aur.archlinux.org/cower.git"
+	     cd "${buildroot}/cower" || exit 1
+	     makepkg --syncdeps --install --noconfirm
+    fi
+
+    cd "$buildroot" || exit 1
+    git clone --depth=1  "https://aur.archlinux.org/pacaur.git"
+
+    cd "${buildroot}/pacaur" || exit 1
+    makepkg --syncdeps --install --noconfirm
+
+    cd "$HOME" || exit 1
+    rm -rf "$buildroot"
+
+  #Install YAOURT
+  elif [ "$aurSoftware" == "yuourt" ]; then
+    #Intert YAOURT Install
+    echo "Installing Yaourt"
+
+  #Install None
+  elif [ "$aurSoftware" == "none" ]; then
+    echo "No AUR manager selected"
+
+  else
+    echo "Invalid ARU manager selected: $aurSoftware"
+    exit
+
+#End Script
+echo "AUR Configured..."
+rm /root/quickScript.sh
+exit
+EOF
+
+#Run File
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
+}
 
 # CONFIGURE CONSOLE
 #############################################
@@ -343,10 +439,10 @@ cat <<EOF > /mnt/root/quickScript.sh
     fi
   fi
 
-  #End Script
-  echo "Console Configured..."
-  rm /root/quickScript.sh
-  exit
+#End Script
+echo "Console Configured..."
+rm /root/quickScript.sh
+exit
 EOF
 
 #Run File
@@ -467,6 +563,7 @@ cat <<EOF > /mnt/root/quickScript.sh
     pacman -S firejail --noconfirm
   fi
 
+#End Script
 echo "Security Configured..."
 rm /root/quickScript.sh
 exit
@@ -477,7 +574,7 @@ chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 }
 
-# Install Bootloader
+# INSTALL BOOTLOADER
 #############################################
 Install_Bootloader()
 {
@@ -485,10 +582,12 @@ Install_Bootloader()
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
-#Install Bootloader
-pacman -S grub --noconfirm
-grub-install --recheck $disk
-grub-mkconfig -o /boot/grub/grub.cfg
+  #Install Bootloader
+  pacman -S grub --noconfirm
+  grub-install --recheck $disk
+  grub-mkconfig -o /boot/grub/grub.cfg
+
+#End Script
 echo "Installed bootloader..."
 rm /root/quickScript.sh
 exit
@@ -525,28 +624,27 @@ WARNING: Computer will be ERASED!!!
 
 Are you ready to start the installation (yes/no): " response
 
-case $response in
-    [yY][eE][sS]|[yY])
-        timedatectl set-ntp true
-        Select_Keymap $keymap
-        Manage_Partition $disk
-        Install_OS "\${os_packages}"
-        OS_Name $os_name
-        OS_Locale $locale
-        OS_Timezone $timezone_region $timezone_city
-        Root_Password $new_root_password
-        #get time
-        #install pacaur
-        Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
-        Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
-        Configure_Console $console_mouseSupport $console_mouseType
-        Secure_OS $install_clamAV $harden_kernal $harden_ipStack $install_firewall $install_firejail
-        Install_Bootloader $disk
-        Reboot
-        ;;
+case $response in [yY][eE][sS]|[yY])
+    timedatectl set-ntp true
+    Select_Keymap $keymap
+    Manage_Partition $disk
+    Install_OS "\${os_packages}"
+    OS_Name $os_name
+    OS_Locale $locale
+    OS_Timezone $timezone_region $timezone_city
+    Configure_Network_Time_Protocol
+    Root_Password $new_root_password
+    Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
+    Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
+    Arch_AUR $arch_aur_program
+    Configure_Console $console_mouseSupport $console_mouseType
+    Secure_OS $install_clamAV $harden_kernal $harden_ipStack $install_firewall $install_firejail
+    Install_Bootloader $disk
+    Reboot
+    ;;
     *)
-        echo
-        echo "Installation was canceled."
-        exit
-        ;;
-    esac
+    echo
+    echo "Installation was canceled."
+    exit
+    ;;
+esac

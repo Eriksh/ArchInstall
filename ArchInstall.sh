@@ -18,7 +18,7 @@ repository="stable"
 usernames=( "erik" )
 sudo_update_users=( "erik" )
 request_new_user_password="yes"
-arch_aur_program="pacaur"
+arch_aur_program="pacaur"                #pacaur, yaourt
 
 #############################################################
 # Configure Console
@@ -77,7 +77,6 @@ Manage_Partition()
 
   echo "Formatting Complete..."
 }
-
 
 # INSTALL
 #############################################
@@ -173,6 +172,7 @@ cat <<EOF > /mnt/root/quickScript.sh
   #Setup NTP
   pacman -S ntp --noconfirm
   systemctl enable ntpd.service
+  systemctl start ntpd.service
 
 #End Script
 echo "Configured Network Time Protocol..."
@@ -372,7 +372,7 @@ cat <<EOF > /mnt/root/quickScript.sh
     rm -rf "$buildroot"
 
   #Install YAOURT
-  elif [ "$aurSoftware" == "yuourt" ]; then
+elif [ "$aurSoftware" == "yaourt" ]; then
     #Intert YAOURT Install
     echo "Installing Yaourt"
 

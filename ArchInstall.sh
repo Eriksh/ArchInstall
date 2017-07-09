@@ -19,6 +19,9 @@ usernames=( "erik" )
 sudo_update_users=( "erik" )
 request_new_user_password="yes"
 arch_aur_program="pacaur"                #pacaur, yaourt
+ntp_server_0="us.pool.ntp.org"
+ntp_server_1="ca.pool.ntp.org"
+ntp_server_2="mx.pool.ntp.org"
 
 #############################################################
 # Configure Console
@@ -171,8 +174,15 @@ Configure_Network_Time_Protocol()
 cat <<EOF > /mnt/root/quickScript.sh
   #Setup NTP
   pacman -S ntp --noconfirm
+
+  #Change NTP Servers
+  sed "s/server 0.*/server $ntp_server_0 iburst/g"
+  sed "s/server 1.*/server $ntp_server_1 iburst/g"
+  sed "s/server 2.*/server $ntp_server_2 iburst/g"
+  sed "s/server 3.*//g"
+
+  #Start Deamon
   systemctl enable ntpd.service
-  systemctl start ntpd.service
 
 #End Script
 echo "Configured Network Time Protocol..."
@@ -372,7 +382,7 @@ cat <<EOF > /mnt/root/quickScript.sh
     rm -rf "$buildroot"
 
   #Install YAOURT
-elif [ "$aurSoftware" == "yaourt" ]; then
+  elif [ "$aurSoftware" == "yaourt" ]; then
     #Intert YAOURT Install
     echo "Installing Yaourt"
 

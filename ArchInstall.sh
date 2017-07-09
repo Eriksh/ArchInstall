@@ -18,7 +18,7 @@ repository="stable"
 usernames=( "erik" )
 sudo_update_users=( "erik" )
 request_new_user_password="yes"
-arch_aur_program="pacaur"                #pacaur, yaourt
+arch_aur_program="pacaur"                #pacaur, yaourt, none
 ntp_server_0="us.pool.ntp.org"
 ntp_server_1="ca.pool.ntp.org"
 ntp_server_2="mx.pool.ntp.org"
@@ -176,6 +176,11 @@ cat <<EOF > /mnt/root/quickScript.sh
   pacman -S ntp --noconfirm
 
   #Change NTP Servers
+  sed -i "/server 0/c\server $ntp_server_0 iburst" /etc/ntp.conf
+  sed -i "/server 1/c\server $ntp_server_1 iburst" /etc/ntp.conf
+  sed -i "/server 2/c\server $ntp_server_2 iburst" /etc/ntp.conf
+  sed -i "/server 3/c\" /etc/ntp.conf
+
   sed "s/server 0.*/server $ntp_server_0 iburst/g"
   sed "s/server 1.*/server $ntp_server_1 iburst/g"
   sed "s/server 2.*/server $ntp_server_2 iburst/g"

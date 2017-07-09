@@ -180,12 +180,7 @@ cat <<EOF > /mnt/root/quickScript.sh
   sed -i "/server 1/c\server $ntp_server_1 iburst" /etc/ntp.conf
   sed -i "/server 2/c\server $ntp_server_2 iburst" /etc/ntp.conf
   sed -i "/server 3/c\" /etc/ntp.conf
-
-  sed "s/server 0.*/server $ntp_server_0 iburst/g"
-  sed "s/server 1.*/server $ntp_server_1 iburst/g"
-  sed "s/server 2.*/server $ntp_server_2 iburst/g"
-  sed "s/server 3.*//g"
-
+  
   #Start Deamon
   systemctl enable ntpd.service
 

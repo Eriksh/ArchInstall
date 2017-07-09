@@ -22,6 +22,7 @@ arch_aur_program="pacaur"                #pacaur, yaourt, none
 ntp_server_0="us.pool.ntp.org"
 ntp_server_1="ca.pool.ntp.org"
 ntp_server_2="mx.pool.ntp.org"
+additional_packages="cowsay"
 
 #############################################################
 # Configure Console
@@ -170,6 +171,12 @@ arch-chroot /mnt /root/quickScript.sh
 #############################################
 Configure_Network_Time_Protocol()
 {
+  ntp_server_0=$1
+  ntp_server_1=$2
+  ntp_server_2=$3
+
+
+
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
   #Setup NTP
@@ -179,8 +186,8 @@ cat <<EOF > /mnt/root/quickScript.sh
   sed -i "/server 0/c\server $ntp_server_0 iburst" /etc/ntp.conf
   sed -i "/server 1/c\server $ntp_server_1 iburst" /etc/ntp.conf
   sed -i "/server 2/c\server $ntp_server_2 iburst" /etc/ntp.conf
-  sed -i "/server 3/c\" /etc/ntp.conf
-  
+  sed -i "/server 3/c\ " /etc/ntp.conf
+
   #Start Deamon
   systemctl enable ntpd.service
 
@@ -225,13 +232,12 @@ arch-chroot /mnt /root/quickScript.sh
 #############################################
 Create_Users()
 {
-
-cat <<EOF > /mnt/root/quickScript.sh
-  # Create Users
   usernames=(${!1})
   addToSudo=(${!2})
   newUserPass=$3
 
+cat <<EOF > /mnt/root/quickScript.sh
+  # Create Users
   pacman -S sudo --noconfirm
 
   #Create users
@@ -597,8 +603,10 @@ cat <<EOF > /mnt/root/quickScript.sh
   grub-install --recheck $disk
   grub-mkconfig -o /boot/grub/grub.cfg
 
+
+
 #End Script
-echo "Installed bootloader..."
+echo "Installed Bootloader..."
 rm /root/quickScript.sh
 exit
 EOF
@@ -608,6 +616,27 @@ chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 }
 
+# ADDITIONAL PACKAGES
+#############################################
+Additional_Packages()
+{
+  packages=(${!1})
+
+#Create File
+cat <<EOF > /mnt/root/quickScript.sh
+  #Install Additional Packages
+  pacman -S packages --noconfirm
+
+#End Script
+echo "Installing Additional Packages..."
+rm /root/quickScript.sh
+exit
+EOF
+
+#Run File
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
+}
 
 # REBOOT
 #############################################
@@ -642,9 +671,10 @@ case $response in [yY][eE][sS]|[yY])
     OS_Name $os_name
     OS_Locale $locale
     OS_Timezone $timezone_region $timezone_city
-    Configure_Network_Time_Protocol
+    Configure_Network_Time_Protocol $ntp_server_0 $ntp_server_1 $ntp_server_2
     Root_Password $new_root_password
     Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
+    Additional_Packages additional_packages[@]
     Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
     Arch_AUR $arch_aur_program
     Configure_Console $console_mouseSupport $console_mouseType

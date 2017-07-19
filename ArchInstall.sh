@@ -620,12 +620,12 @@ arch-chroot /mnt /root/quickScript.sh
 #############################################
 Additional_Packages()
 {
-  packages=(${!1})
+  packages="$1"
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
   #Install Additional Packages
-  pacman -S packages --noconfirm
+  pacman -S $packages --noconfirm
 
 #End Script
 echo "Installing Additional Packages..."

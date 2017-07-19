@@ -232,36 +232,36 @@ arch-chroot /mnt /root/quickScript.sh
 #############################################
 Create_Users()
 {
-  usernames=(${!1})
-  addToSudo=(${!2})
-  newUserPass=$3
 
 cat <<EOF > /mnt/root/quickScript.sh
   # Create Users
+  usernames=(${!1})
+  addToSudo=(${!2})
+  newUserPass=$3
   pacman -S sudo --noconfirm
 
   #Create users
   for username in \${usernames[*]}; do
 
-	#Create user
+  #Create user
 	useradd -m -G wheel -s /bin/bash \$username
 
-	#Create new user password
+  #Create new user password
 	if [ "\$newUserPass" == "yes" ]; then
-		clear
-		echo "Please enter password for user \$username:"
-		for i in {1..5}; do passwd \$username && break || sleep 1; done
+    for i in {1..5}; do passwd \$username && break || sleep 1; done
+		  clear
+		  echo "Please enter password for user \$username:"
+		done
 	fi
-  done
 
   #Create users
   for username in \${addToSudo[*]}; do
-	   #Add user to sudo
-	   echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
+    #Add user to sudo
+	  echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
   done
 
 #End Script
-echo "Users added..."
+echo "Users Added...."
 rm /root/quickScript.sh
 exit
 EOF
@@ -337,71 +337,6 @@ cat <<EOF > /mnt/root/quickScript.sh
 
 #End Script
 echo "Pacman Configured..."
-rm /root/quickScript.sh
-exit
-EOF
-
-#Run File
-chmod +x /mnt/root/quickScript.sh
-arch-chroot /mnt /root/quickScript.sh
-}
-
-# INSTALL AUR SOFTWARE
-#############################################
-Arch_AUR()
-{
-
-  aurSoftware="$1"
-
-cat <<EOF > /mnt/root/quickScript.sh
-  #This code came from Stefan Tatschner install-pacaur.sh script
-  #Setup AUR
-
-  #Install PACAUR
-  if [ "$aurSoftware" == "pacaur" ]; then
-    buildroot="$(mktemp -d)"
-
-    # Ask for user passwort once, see sudo(8).
-    sudo -v
-    mkdir -p "$buildroot"
-    cd "$buildroot" || exit 1
-
-    # Arch Linux ARM provides a cower package for the RPI!
-    # Let's either install 'cower' via pacman, or build it.
-    if [ "$(uname -n)" = 'alarmpi' ]; then
-	     sudo pacman -S cower
-    else
-	     # Fetch Dave Reisner's key to be able to verify cower.
-	     gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys 487EACC08557AD082088DABA1EB2638FF56C0C53
-	     git clone --depth=1 "https://aur.archlinux.org/cower.git"
-	     cd "${buildroot}/cower" || exit 1
-	     makepkg --syncdeps --install --noconfirm
-    fi
-
-    cd "$buildroot" || exit 1
-    git clone --depth=1  "https://aur.archlinux.org/pacaur.git"
-
-    cd "${buildroot}/pacaur" || exit 1
-    makepkg --syncdeps --install --noconfirm
-
-    cd "$HOME" || exit 1
-    rm -rf "$buildroot"
-
-  #Install YAOURT
-  elif [ "$aurSoftware" == "yaourt" ]; then
-    #Intert YAOURT Install
-    echo "Installing Yaourt"
-
-  #Install None
-  elif [ "$aurSoftware" == "none" ]; then
-    echo "No AUR manager selected"
-
-  else
-    echo "Invalid ARU manager selected: $aurSoftware"
-    exit
-
-#End Script
-echo "AUR Configured..."
 rm /root/quickScript.sh
 exit
 EOF
@@ -674,9 +609,7 @@ case $response in [yY][eE][sS]|[yY])
     Configure_Network_Time_Protocol $ntp_server_0 $ntp_server_1 $ntp_server_2
     Root_Password $new_root_password
     Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
-    Additional_Packages additional_packages[@]
     Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
-    Arch_AUR $arch_aur_program
     Configure_Console $console_mouseSupport $console_mouseType
     Secure_OS $install_clamAV $harden_kernal $harden_ipStack $install_firewall $install_firejail
     Install_Bootloader $disk

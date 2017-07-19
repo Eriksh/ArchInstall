@@ -232,12 +232,13 @@ arch-chroot /mnt /root/quickScript.sh
 #############################################
 Create_Users()
 {
-
-cat <<EOF > /mnt/root/quickScript.sh
-  # Create Users
+  
   usernames=(${!1})
   addToSudo=(${!2})
   newUserPass=$3
+
+cat <<EOF > /mnt/root/quickScript.sh
+  # Create Users
   pacman -S sudo --noconfirm
 
   #Create users

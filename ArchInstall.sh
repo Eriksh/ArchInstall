@@ -675,12 +675,13 @@ case $response in [yY][eE][sS]|[yY])
     Root_Password $new_root_password
     Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
     Additional_Packages additional_packages[@]
-    #Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
-    #Arch_AUR $arch_aur_program
-    #Configure_Console $console_mouseSupport $console_mouseType
-    #Secure_OS $install_clamAV $harden_kernal $harden_ipStack $install_firewall $install_firejail
-    #Install_Bootloader $disk
-    #Reboot
+    Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
+    Arch_AUR $arch_aur_program
+    Configure_Console $console_mouseSupport $console_mouseType
+    Secure_OS $install_clamAV $harden_kernal $harden_ipStack $install_firewall $install_firejail
+    Install_Bootloader $disk
+    Additional_Packages $additional_packages
+    Reboot
     ;;
     *)
     echo

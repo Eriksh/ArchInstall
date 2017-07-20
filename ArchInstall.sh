@@ -5,39 +5,28 @@
 #############################################################
 keymap="us"
 disk="/dev/sda"
-os_packages="base base-devel git"
+partition_filesystem="uefi"                   #uefi, mbr
+swap_partition_size="2G"                      #size[K,M,G]
+os_packages="base base-devel"
 os_name="ArchSys"
 locale="en_US.UTF-8"
-timezone_region="US"
-timezone_city="Pacific"
+timezone_country="US"
+timezone_region="Pacific"
+timezone_city="America/Los_Angeles"
 new_root_password="yes"
 mirrorlist_country="all"
-mirrorlist_protocol="https"
+mirrorlist_protocol="https"                   #http, https
 rank_mirrorlist_by="rate"
-repository="stable"
-usernames=( "erik james" )
-sudo_update_users=( "erik james" )
+repository="stable"                           #stable,
+usernames=( "erik" )
+sudo_update_users=( "erik" )
 request_new_user_password="yes"
-arch_aur_program="pacaur"                #pacaur, yaourt, none
-ntp_server_0="us.pool.ntp.org"
-ntp_server_1="ca.pool.ntp.org"
-ntp_server_2="mx.pool.ntp.org"
-additional_packages="cowsay murmur"
+
 
 #############################################################
-# Configure Console
+# Additional Packages
 #############################################################
-console_mouseSupport="no"
-console_mouseType="usb"                   #usb, trackpad, ps2
-
-#############################################################
-# Security Setup
-#############################################################
-install_clamAV="yes"
-harden_kernal="yes"
-harden_ipStack="yes"
-install_firewall="ufw"                  # none, ufw, iptables
-install_firejail="yes"
+additional_packages=""
 
 ################################################################################
 # DO NOT TOUCH ANYTHING BELOW THIS LINE
@@ -64,20 +53,58 @@ Select_Keymap()
 Manage_Partition()
 {
   disk_number=$1
-  first_partition=1
-  second_partition=2
-  echo -e "o\nw\n" | fdisk $disk_number
-  echo -e "n\np\n1\n\n+100mb\na\n\nn\np\n\n\n\n\nw\n" | fdisk $disk_number
-  partprobe $disk_number
+  filesystem=$2
+  swap_size=$3
+  boot_partition=1
+  swap_partition=2
+  home_partition=3
 
-  #format partitions
-  mkfs.ext4 $disk_number$first_partition
-  mkfs.ext4 $disk_number$second_partition
+  if [ $filesystem == "uefi" ]; then
+    echo -e "g\n\nw\n" | gdisk $disk_number
+    echo -e "n\n\n\n+256M\n\nt\n1\nw\n" | gdisk $disk_number
+    echo -e "n\n\n\n+$swap_size\n\nt\n2\n19\nw\n" | gdisk $disk_number
+    echo -e "n\n\n\n\n\nt\n3\n20\nw\n" | gdisk $disk_number
+    partprobe $disk_number
 
-  #mount filesystem
-  mount $disk_number$second_partition /mnt
-  mkdir /mnt/boot
-  mount $disk_number$first_partition /mnt/boot
+    #format partitions
+    mkfs.fat -F32 $disk_number$boot_partition
+    mkswap $disk_number$swap_partition
+    swapon $disk_number$swap_partition
+    mkfs.ext4 $disk_number$home_partition
+
+    #mount filesystem
+    mount $disk_number$boot_partition /mnt
+    mkdir /mnt/boot
+    mount $disk_number$first_partition /mnt/boot
+
+    break
+
+  elif [ $filesystem == "mbr" ]; then
+    echo -e "o\nw\n" | fdisk $disk_number
+    echo -e "n\np\n1\n\n+100mb\na\n\nw\n" | fdisk $disk_number
+    echo -e "n\np\n1\n\n+$swap_size\na\n\nw\n" | fdisk $disk_number
+    echo -e "n\np\n\n\n\n\nw\n" | fdisk $disk_number
+    partprobe $disk_number
+
+    #format partitions
+    mkfs.ext4 $disk_number$boot_partition
+    mkswap $disk_number$swap_partition
+    swapon $disk_number$swap_partition
+    mkfs.ext4 $disk_number$home_partition
+
+    #mount filesystem
+    mount $disk_number$boot_partition /mnt
+    mkdir /mnt/boot
+    mount $disk_number$first_partition /mnt/boot
+
+    break
+
+  else
+    echo
+    echo "Invalid partition type selected"
+    echo "Installation was canceled"
+    exit
+  fi
 
   echo "Formatting Complete..."
 }
@@ -144,8 +171,8 @@ arch-chroot /mnt /root/quickScript.sh
 #############################################
 OS_Timezone()
 {
-  timezone_region=$1
-  timezone_city=$2
+  timezone_region=$1   #changed
+  timezone_city=$2     #changed
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
@@ -174,8 +201,6 @@ Configure_Network_Time_Protocol()
   ntp_server_0=$1
   ntp_server_1=$2
   ntp_server_2=$3
-
-
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
@@ -349,184 +374,7 @@ chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 }
 
-# CONFIGURE CONSOLE
-#############################################
-Configure_Console()
-{
 
-  consoleMouseSupport="$1"
-  consoleMouseType="$2"
-  installPacaur="$3"
-
-cat <<EOF > /mnt/root/quickScript.sh
-  #Configure Console
-  pacman -S bash-completion --noconfirm
-
-  #Download network programs
-  pacman -S iw wpa_supplicant dialog --noconfirm
-
-  #Enable Console Mouse Support
-  if [ "$consoleMouseSupport" == "yes" ]; then
-    echo "In mouse support......."
-    #USB Mouse
-    if [ "$consoleMouseType" == "usb" ]; then
-      echo "In USB......."
-      pacman -S gpm xf86-input-synaptics --noconfirm
-      GPM_ARGS="-m /dev/input/mice -t imps2"
-      systemctl enable gpm.service
-
-    #Trackpad
-    elif [ "$consoleMouseType" == "trackpad" ]; then
-      pacman -S gpm xf86-input-synaptics --noconfirm
-      GPM_ARGS="-m /dev/input/mice -t ps2"
-      systemctl enable gpm.service
-
-    #PS2
-    elif [ "$consoleMouseType" == "ps2" ]; then
-      pacman -S gpm xf86-input-synaptics --noconfirm
-      GPM_ARGS="-m /dev/psaux -t ps2"
-      systemctl enable gpm.service
-
-    #PS2
-    else
-      echo "Mouse support was not installed..."
-    fi
-  fi
-
-#End Script
-echo "Console Configured..."
-rm /root/quickScript.sh
-exit
-EOF
-
-#Run File
-chmod +x /mnt/root/quickScript.sh
-arch-chroot /mnt /root/quickScript.sh
-}
-
-# CONFIGURE SECURITY
-#############################################
-Secure_OS()
-{
-  #Arguments
-  clamAV="$1"
-  kernel="$2"
-  ip="$3"
-  firewall="$4"
-  firejail="$5"
-
-
-cat <<EOF > /mnt/root/quickScript.sh
-  #Add ClamAV
-  if [ "$clamAV" == "yes" ]; then
-    pacman -S clamav --noconfirm
-    freshclam
-    systemctl enable clamd.service
-  fi
-
-  #Harden kernel
-  if [ "$kernel" == "yes" ]; then
-    sed -i '15 s/.*/Storage=none/'           /etc/systemd/coredump.conf
-    systemctl deamon-reload
-
-    cp /usr/lib/sysctl.d/50-coredump.conf /etc/sysctl.d
-    cp /usr/lib/sysctl.d/50-default.conf /etc/sysctl.d
-
-    touch /etc/sysctl.d/50-dmesg-restrict.conf
-    echo "kernel.dmesg_restrict = 1" >> /etc/sysctl.d/50-dmesg-restrict.conf
-  fi
-
-  #Harden IP Stack
-  if [ "$ip" == "yes" ]; then
-    echo "## TCP SYN cookie protection (default)" >> /etc/sysctl.d/51-net.conf
-    echo "## helps protect against SYN flood attacks" >> /etc/sysctl.d/51-net.conf
-    echo "## only kicks in when net.ipv4.tcp_max_syn_backlog is reached" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv4.tcp_syncookies = 1" >> /etc/sysctl.d/51-net.conf
-    echo "" >> /etc/sysctl.d/51-net.conf
-    echo "## protect against tcp time-wait assassination hazards" >> /etc/sysctl.d/51-net.conf
-    echo "## drop RST packets for sockets in the time-wait state" >> /etc/sysctl.d/51-net.conf
-    echo "## (not widely supported outside of linux, but conforms to RFC)" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv4.tcp_rfc1337 = 1" >> /etc/sysctl.d/51-net.conf
-    echo "" >> /etc/sysctl.d/51-net.conf
-    echo "## sets the kernels reverse path filtering mechanism to value 1 (on)" >> /etc/sysctl.d/51-net.conf
-    echo "## will do source validation of the packet's recieved from all the interfaces on the machine" >> /etc/sysctl.d/51-net.conf
-    echo "## protects from attackers that are using ip spoofing methods to do harm" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv4.conf.default.rp_filter = 1" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv4.conf.all.rp_filter = 1" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv6.conf.default.rp_filter = 1" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv6.conf.all.rp_filter = 1" >> /etc/sysctl.d/51-net.conf
-    echo "" >> /etc/sysctl.d/51-net.conf
-    echo "## tcp timestamps" >> /etc/sysctl.d/51-net.conf
-    echo "## + protect against wrapping sequence numbers (at gigabit speeds)" >> /etc/sysctl.d/51-net.conf
-    echo "## + round trip time calculation implemented in TCP" >> /etc/sysctl.d/51-net.conf
-    echo "## - causes extra overhead and allows uptime detection by scanners like nmap" >> /etc/sysctl.d/51-net.conf
-    echo "## enable @ gigabit speeds" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv4.tcp_timestamps = 0" >> /etc/sysctl.d/51-net.conf
-    echo "" >> /etc/sysctl.d/51-net.conf
-    echo "## log martian packets" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv4.conf.default.log_martians = 1" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv4.conf.all.log_martians = 1" >> /etc/sysctl.d/51-net.conf
-    echo "" >> /etc/sysctl.d/51-net.conf
-    echo "## ignore echo broadcast requests to prevent being part of smurf attacks (default)" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv4.icmp_echo_ignore_broadcasts = 1" >> /etc/sysctl.d/51-net.conf
-    echo "" >> /etc/sysctl.d/51-net.conf
-    echo "## ignore bogus icmp errors (default)" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv4.icmp_ignore_bogus_error_responses = 1" >> /etc/sysctl.d/51-net.conf
-    echo "" >> /etc/sysctl.d/51-net.conf
-    echo "## send redirects (not a router, disable it)" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv4.conf.default.send_redirects = 0" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv4.conf.all.send_redirects = 0" >> /etc/sysctl.d/51-net.conf
-    echo "" >> /etc/sysctl.d/51-net.conf
-    echo "## ICMP routing redirects (only secure)" >> /etc/sysctl.d/51-net.conf
-    echo "#net.ipv4.conf.default.secure_redirects = 1 (default)" >> /etc/sysctl.d/51-net.conf
-    echo "#net.ipv4.conf.all.secure_redirects = 1 (default)" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv4.conf.default.accept_redirects=0" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv4.conf.all.accept_redirects=0" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv6.conf.default.accept_redirects=0" >> /etc/sysctl.d/51-net.conf
-    echo "net.ipv6.conf.all.accept_redirects=0" >> /etc/sysctl.d/51-net.conf
-  fi
-
-  #Add Firewall
-  if [ "$firewall" == "ufw" ]; then
-    pacman -S ufw --noconfirm
-    ufw enable
-    systemctl enable ufw.service
-  elif [ "$firewall" == "iptables" ]; then
-    pacman -S iptables --noconfirm
-    touch /etc/iptables/iptables.rules
-    iptables -F
-    iptables -X
-    iptables -t nat -F
-    iptables -t nat -X
-    iptables -t mangle -F
-    iptables -t mangle -X
-    iptables -t raw -F
-    iptables -t raw -X
-    iptables -t security -F
-    iptables -t security -X
-    iptables -P INPUT ACCEPT
-    iptables -P FORWARD ACCEPT
-    iptables -P OUTPUT ACCEPT
-    systemctl enable iptables.service
-  else
-    echo "No firewall installed..."
-  fi
-
-  #Add Firejail
-  if [ "$firejail" == "yes" ]; then
-    pacman -S firejail --noconfirm
-  fi
-
-#End Script
-echo "Security Configured..."
-rm /root/quickScript.sh
-exit
-EOF
-
-#Run File
-chmod +x /mnt/root/quickScript.sh
-arch-chroot /mnt /root/quickScript.sh
-}
 
 # INSTALL BOOTLOADER
 #############################################
@@ -540,8 +388,6 @@ cat <<EOF > /mnt/root/quickScript.sh
   pacman -S grub --noconfirm
   grub-install --recheck $disk
   grub-mkconfig -o /boot/grub/grub.cfg
-
-
 
 #End Script
 echo "Installed Bootloader..."
@@ -604,20 +450,18 @@ Are you ready to start the installation (yes/no): " response
 case $response in [yY][eE][sS]|[yY])
     timedatectl set-ntp true
     Select_Keymap $keymap
-    Manage_Partition $disk
-    Install_OS "\${os_packages}"
-    OS_Name $os_name
-    OS_Locale $locale
-    OS_Timezone $timezone_region $timezone_city
-    Configure_Network_Time_Protocol $ntp_server_0 $ntp_server_1 $ntp_server_2
-    Root_Password $new_root_password
-    Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
-    Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
-    Configure_Console $console_mouseSupport $console_mouseType
-    Secure_OS $install_clamAV $harden_kernal $harden_ipStack $install_firewall $install_firejail
-    Install_Bootloader $disk
-    Additional_Packages $additional_packages
-    Reboot
+    Manage_Partition $disk $partition_filesystem $swap_partition_size
+    #Install_OS "\${os_packages}"
+    #OS_Name $os_name
+    #OS_Locale $locale
+    #OS_Timezone $timezone_region $timezone_city
+    #Configure_Network_Time_Protocol $ntp_server_0 $ntp_server_1 $ntp_server_2
+    #Root_Password $new_root_password
+    #Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
+    #Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
+    #Install_Bootloader $disk
+    #Additional_Packages $additional_packages
+    #Reboot
     ;;
     *)
     echo

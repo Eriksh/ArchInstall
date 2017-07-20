@@ -60,10 +60,10 @@ Manage_Partition()
   home_partition=3
 
   if [ $filesystem == "uefi" ]; then
-    echo -e "g\n\nw\n" | gdisk $disk_number
-    echo -e "n\n\n\n+256M\n\nt\n1\nw\n" | gdisk $disk_number
-    echo -e "n\n\n\n+$swap_size\n\nt\n2\n19\nw\n" | gdisk $disk_number
-    echo -e "n\n\n\n\n\nt\n3\n20\nw\n" | gdisk $disk_number
+    echo -e "g\n\nw\n" | fdisk $disk_number
+    echo -e "n\n\n\n+256M\n\nt\n1\nw\n" | fdisk $disk_number
+    echo -e "n\n\n\n+$swap_size\n\nt\n2\n19\nw\n" | fdisk $disk_number
+    echo -e "n\n\n\n\n\nt\n3\n20\nw\n" | fdisk $disk_number
     partprobe $disk_number
 
     #format partitions

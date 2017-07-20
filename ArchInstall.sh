@@ -237,6 +237,10 @@ Create_Users()
   addToSudo=(${!2})
   newUserPass=$3
 
+  echo $usernames
+  echo $addToSudo
+  echo $newUserPass
+
 cat <<EOF > /mnt/root/quickScript.sh
   # Create Users
   pacman -S sudo --noconfirm

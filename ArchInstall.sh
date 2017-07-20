@@ -233,41 +233,39 @@ arch-chroot /mnt /root/quickScript.sh
 Create_Users()
 {
 
+cat <<EOF > /mnt/root/quickScript.sh
+  # Create Users
   usernames=(${!1})
   addToSudo=(${!2})
   newUserPass=$3
 
-  echo $usernames
-  echo $addToSudo
-  echo $newUserPass
-
-cat <<EOF > /mnt/root/quickScript.sh
-  # Create Users
+  #Install Sudo
   pacman -S sudo --noconfirm
 
   #Create users
   for username in \${usernames[*]}; do
 
   #Create user
-	useradd -m -G wheel -s /bin/bash \$username
+  useradd -m -G wheel -s /bin/bash \$username
 
   #Create new user password
-	if [ "\$newUserPass" == "yes" ]; then
+  if [ "\$newUserPass" == "yes" ]; then
+    clear
+    echo "Please enter password for user \$username:"
     for i in {1..5}; do passwd \$username && break || sleep 1; done
-		  clear
-		  echo "Please enter password for user \$username:"
-		done
-	fi
+  fi
+done
 
   #Create users
   for username in \${addToSudo[*]}; do
-    #Add user to sudo
-	  echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
+
+  #Add user to sudo
+  echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
   done
 
 #End Script
-echo "Users Added...."
-#rm /root/quickScript.sh
+echo "Users Added..."
+rm /root/quickScript.sh
 exit
 EOF
 

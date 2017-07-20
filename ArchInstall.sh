@@ -73,9 +73,9 @@ Manage_Partition()
     mkfs.ext4 $disk_number$home_partition
 
     #mount filesystem
-    mount $disk_number$boot_partition /mnt
+    mount $disk_number$home_partition /mnt
     mkdir /mnt/boot
-    mount $disk_number$first_partition /mnt/boot
+    mount $disk_number$boot_partition /mnt/boot
 
     break
 
@@ -93,9 +93,9 @@ Manage_Partition()
     mkfs.ext4 $disk_number$home_partition
 
     #mount filesystem
-    mount $disk_number$boot_partition /mnt
+    mount $disk_number$home_partition /mnt
     mkdir /mnt/boot
-    mount $disk_number$first_partition /mnt/boot
+    mount $disk_number$boot_partition /mnt/boot
 
     break
 

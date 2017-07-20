@@ -77,7 +77,6 @@ Manage_Partition()
     mount $disk_number$home_partition /mnt
     mkdir /mnt/boot
     mount $disk_number$boot_partition /mnt/boot
-    break
 
   elif [ $filesystem == "mbr" ]; then
     echo -e "o\nw\n" | fdisk $disk_number
@@ -96,7 +95,6 @@ Manage_Partition()
     mount $disk_number$home_partition /mnt
     mkdir /mnt/boot
     mount $disk_number$boot_partition /mnt/boot
-    break
 
   else
     echo
@@ -374,7 +372,7 @@ cat <<EOF > /mnt/root/quickScript.sh
 
 #End Script
 echo "Installed Bootloader..."
-rm /root/quickScript.sh
+#rm /root/quickScript.sh
 exit
 EOF
 
@@ -443,8 +441,8 @@ case $response in [yY][eE][sS]|[yY])
     Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
     Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
     Install_Bootloader $disk $bootloader $partition_filesystem
-    Additional_Packages $additional_packages
-    Reboot
+    #Additional_Packages $additional_packages
+    #Reboot
     ;;
     *)
     echo

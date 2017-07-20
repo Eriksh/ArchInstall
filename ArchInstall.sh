@@ -451,17 +451,17 @@ case $response in [yY][eE][sS]|[yY])
     timedatectl set-ntp true
     Select_Keymap $keymap
     Manage_Partition $disk $partition_filesystem $swap_partition_size
-    #Install_OS "\${os_packages}"
-    #OS_Name $os_name
-    #OS_Locale $locale
-    #OS_Timezone $timezone_region $timezone_city
-    #Configure_Network_Time_Protocol $ntp_server_0 $ntp_server_1 $ntp_server_2
-    #Root_Password $new_root_password
-    #Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
-    #Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
-    #Install_Bootloader $disk
-    #Additional_Packages $additional_packages
-    #Reboot
+    Install_OS "\${os_packages}"
+    OS_Name $os_name
+    OS_Locale $locale
+    OS_Timezone $timezone_region $timezone_city
+    Configure_Network_Time_Protocol $ntp_server_0 $ntp_server_1 $ntp_server_2
+    Root_Password $new_root_password
+    Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
+    Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
+    Install_Bootloader $disk
+    Additional_Packages $additional_packages
+    Reboot
     ;;
     *)
     echo

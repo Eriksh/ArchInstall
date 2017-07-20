@@ -22,7 +22,7 @@ arch_aur_program="pacaur"                #pacaur, yaourt, none
 ntp_server_0="us.pool.ntp.org"
 ntp_server_1="ca.pool.ntp.org"
 ntp_server_2="mx.pool.ntp.org"
-additional_packages="cowsay"
+additional_packages="cowsay murmur"
 
 #############################################################
 # Configure Console
@@ -612,12 +612,12 @@ case $response in [yY][eE][sS]|[yY])
     Configure_Network_Time_Protocol $ntp_server_0 $ntp_server_1 $ntp_server_2
     Root_Password $new_root_password
     Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
-    #Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
-    #Configure_Console $console_mouseSupport $console_mouseType
-    #Secure_OS $install_clamAV $harden_kernal $harden_ipStack $install_firewall $install_firejail
-    #Install_Bootloader $disk
-    #Additional_Packages $additional_packages
-    #Reboot
+    Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
+    Configure_Console $console_mouseSupport $console_mouseType
+    Secure_OS $install_clamAV $harden_kernal $harden_ipStack $install_firewall $install_firejail
+    Install_Bootloader $disk
+    Additional_Packages $additional_packages
+    Reboot
     ;;
     *)
     echo

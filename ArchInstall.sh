@@ -271,13 +271,13 @@ done
 
   #Allow sudo through root password
   if [ "\$rootbyroot" == "yes" ]; then
-    sed -i '/"Defaults targerpw"/s/^#//g' /etc/sudoers
+    sed -i '/"Defaults targetpw"/s/^#//g' /etc/sudoers
     sed -i '/"ALL ALL=(ALL) ALL"/s/^#//g' /etc/sudoers
   fi
 
 #End Script
 echo "Users Added..."
-rm /root/quickScript.sh
+#rm /root/quickScript.sh
 exit
 EOF
 

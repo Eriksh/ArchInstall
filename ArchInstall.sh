@@ -3,30 +3,38 @@
 #############################################################
 # Installation Options
 #############################################################
-keymap="us"
+keymap="us"                                   #us, NSI-dvorak, amiga-de, ...
+
+#Partitions Information
 disk="/dev/sda"
-partition_filesystem="mbr"                   #uefi, mbr
+partition_filesystem="mbr"                    #uefi, mbr
 swap_partition_size="2G"                      #size[K,M,G]
+
+#Installation Packages
 os_packages="base base-devel"
+
+#System ID, Locale & Timezone
 os_name="ArchSys"
 locale="en_US.UTF-8"
 timezone_country="US"
 timezone_region="Pacific"
-timezone_city="America/Los_Angeles"
-new_root_password="yes"
-mirrorlist_country="all"
+
+#Mirrorlist & Repo Settings
+mirrorlist_country="all"                      #all, 'United States', ...
 mirrorlist_protocol="https"                   #http, https
-rank_mirrorlist_by="rate"
-repository="stable"                           #stable,
-usernames=( "erik" )
-sudo_update_users=( "erik" )
-request_new_user_password="yes"
+rank_mirrorlist_by="rate"                     #rate, ...
+repository="stable"                           #stable, testing
+
+new_root_password="yes"                       #request password for root account
+request_user_password="yes"                   #request passwords for user account
+usernames=( "erik" )                          #user accounts on system
+root_through_passkey="yes"                    #requires root password to run as root
+give_users_root=( "erik" )                    #requires users password to run as root
+
+#bootloader
 bootloader="grub"
 
-
-#############################################################
-# Additional Packages
-#############################################################
+#Additional Packages
 additional_packages=""
 
 ################################################################################
@@ -133,7 +141,7 @@ OS_Name()
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
-  #Set hostname
+  #Set Hostname
   echo "$os_name" > /etc/hostname
 
 #End Script
@@ -152,6 +160,7 @@ arch-chroot /mnt /root/quickScript.sh
 OS_Locale()
 {
   locale=$1
+  keymap=$2
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
@@ -159,6 +168,9 @@ cat <<EOF > /mnt/root/quickScript.sh
   sed -i '/$locale/s/^#//g' /etc/locale.gen
   echo "LANG=$locale" > /etc/locale.conf
   locale-gen
+
+  #Make Keyboard Layout Permenant
+  echo KEYMAP=$keymap > /etc/vconsole.conf
 
 #End Script
 echo "Updated Locale..."
@@ -183,9 +195,6 @@ cat <<EOF > /mnt/root/quickScript.sh
   #Set timezone
   ln -s /usr/share/zoneinfo/$timezone_region/$timezone_city /etc/localtime
   hwclock --systohc
-
-  #Clock Synchronization
-  timedatectl set-ntp true
 
 #End Script
 echo "Updated Timezone..."
@@ -234,6 +243,7 @@ cat <<EOF > /mnt/root/quickScript.sh
   usernames=(${!1})
   addToSudo=(${!2})
   newUserPass=$3
+  rootbyroot=$4
 
   #Install Sudo
   pacman -S sudo --noconfirm
@@ -252,12 +262,18 @@ cat <<EOF > /mnt/root/quickScript.sh
   fi
 done
 
-  #Create users
+  #Add users to sudo
   for username in \${addToSudo[*]}; do
 
-  #Add user to sudo
-  echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
+    #Add user to sudo
+    echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
   done
+
+  #Allow sudo through root password
+  if [ "\$rootbyroot" == "yes" ]; then
+    sed -i '/"Defaults targerpw"/s/^#//g' /etc/sudoers
+    sed -i '/"ALL ALL=(ALL) ALL"/s/^#//g' /etc/sudoers
+  fi
 
 #End Script
 echo "Users Added..."
@@ -441,12 +457,11 @@ case $response in [yY][eE][sS]|[yY])
     Select_Keymap $keymap
     Manage_Partition $disk $partition_filesystem $swap_partition_size
     Install_OS "$os_packages"
-    #OS_Name $os_name
-    #OS_Locale $locale
-    #OS_Timezone $timezone_region $timezone_city
-    #Configure_Network_Time_Protocol $ntp_server_0 $ntp_server_1 $ntp_server_2
-    #Root_Password $new_root_password
-    #Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
+    OS_Name $os_name
+    OS_Locale $locale $keymap
+    OS_Timezone $timezone_country $timezone_region
+    Root_Password $new_root_password
+    Create_Users usernames[@] sudo_update_users[@] $request_user_password $root_through_passkey
     #Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
     #Install_Bootloader $disk $bootloader $partition_filesystem
     #Additional_Packages $additional_packages

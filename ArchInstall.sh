@@ -61,11 +61,15 @@ Manage_Partition()
   home_partition=3
 
   if [ $filesystem == "uefi" ]; then
-    echo -e "g\n\nw\n" | fdisk $disk_number
-    echo -e "n\n\n\n+256M\n\nt\n1\nw\n" | fdisk $disk_number
-    echo -e "n\n\n\n+$swap_size\n\nt\n2\n19\nw\n" | fdisk $disk_number
-    echo -e "n\n\n\n\n\nt\n3\n20\nw\n" | fdisk $disk_number
+    sgdisk -Z /dev/sda
+    sgdisk -n 0:0:+256M -t 0:ef00 -c 0:"boot" /dev/sda
+    sgdisk -n 0:0:+$swap_size -t 0:8200 -c 0:"swap" /dev/sda
+    sgdisk -n 0:0:0 -t 0:8300 -c 0:"home" /dev/sda
+    sgdisk -p /dev/sda
+
+    #inform the OS of partition table changes
     partprobe $disk_number
+    fdisk -l $disk_number
 
     #format partitions
     mkfs.fat -F32 $disk_number$boot_partition
@@ -83,7 +87,10 @@ Manage_Partition()
     echo -e "n\np\n1\n\n+100mb\na\n\nw\n" | fdisk $disk_number
     echo -e "n\np\n1\n\n+$swap_size\na\n\nw\n" | fdisk $disk_number
     echo -e "n\np\n\n\n\n\nw\n" | fdisk $disk_number
+
+    #inform the OS of partition table changes
     partprobe $disk_number
+    fdisk -l $disk_number
 
     #format partitions
     mkfs.ext4 $disk_number$boot_partition
@@ -432,15 +439,15 @@ case $response in [yY][eE][sS]|[yY])
     timedatectl set-ntp true
     Select_Keymap $keymap
     Manage_Partition $disk $partition_filesystem $swap_partition_size
-    Install_OS "\${os_packages}"
-    OS_Name $os_name
-    OS_Locale $locale
-    OS_Timezone $timezone_region $timezone_city
-    Configure_Network_Time_Protocol $ntp_server_0 $ntp_server_1 $ntp_server_2
-    Root_Password $new_root_password
-    Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
-    Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
-    Install_Bootloader $disk $bootloader $partition_filesystem
+    #Install_OS "\${os_packages}"
+    #OS_Name $os_name
+    #OS_Locale $locale
+    #OS_Timezone $timezone_region $timezone_city
+    #Configure_Network_Time_Protocol $ntp_server_0 $ntp_server_1 $ntp_server_2
+    #Root_Password $new_root_password
+    #Create_Users usernames[@] sudo_update_users[@] $request_new_user_password
+    #Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
+    #Install_Bootloader $disk $bootloader $partition_filesystem
     #Additional_Packages $additional_packages
     #Reboot
     ;;

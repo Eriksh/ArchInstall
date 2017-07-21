@@ -80,7 +80,9 @@ Manage_Partition()
     #mount filesystem
     mount $disk_number$home_partition /mnt
     mkdir /mnt/boot
-    mount $disk_number$boot_partition /mnt/boot
+    mount --bind /esp/EFI/arch/ /boot
+
+    #mount $disk_number$boot_partition /mnt/boot
 
   elif [ $filesystem == "mbr" ]; then
     echo -e "o\nw\n" | fdisk $disk_number

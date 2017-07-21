@@ -5,7 +5,7 @@
 #############################################################
 keymap="us"
 disk="/dev/sda"
-partition_filesystem="uefi"                   #uefi, mbr
+partition_filesystem="mbr"                   #uefi, mbr
 swap_partition_size="2G"                      #size[K,M,G]
 os_packages="base base-devel"
 os_name="ArchSys"
@@ -80,15 +80,13 @@ Manage_Partition()
     #mount filesystem
     mount $disk_number$home_partition /mnt
     mkdir /mnt/boot
-    mount --bind /esp/EFI/arch/ /boot
-
-    #mount $disk_number$boot_partition /mnt/boot
+    mount $disk_number$boot_partition /mnt/boot
 
   elif [ $filesystem == "mbr" ]; then
     echo -e "o\nw\n" | fdisk $disk_number
     echo -e "n\np\n1\n\n+100mb\na\n\nw\n" | fdisk $disk_number
-    echo -e "n\np\n1\n\n+$swap_size\na\n\nw\n" | fdisk $disk_number
-    echo -e "n\np\n\n\n\n\nw\n" | fdisk $disk_number
+    echo -e "n\np\n1\n\n+$swap_size\n\n\nw\n" | fdisk $disk_number
+    echo -e "n\np\n1\n\n\n\n\nw\n" | fdisk $disk_number
 
     #inform the OS of partition table changes
     partprobe $disk_number
@@ -348,7 +346,6 @@ arch-chroot /mnt /root/quickScript.sh
 }
 
 
-
 # INSTALL BOOTLOADER
 #############################################
 Install_Bootloader()
@@ -361,22 +358,24 @@ Install_Bootloader()
 cat <<EOF > /mnt/root/quickScript.sh
   #Install Bootloader
 
-
   if [ "$bootloader" == "grub" ]; then
     if [ "$filesystem" == "mbr" ]; then
       pacman -S grub --noconfirm
       grub-install --recheck $disk
-      grub-mkconfig -o /boot/grub/grub.cfg
 
     elif [ "$filesystem" == "uefi" ]; then
       pacman -S grub efibootmgr --noconfirm
       grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=grub
-      grub-mkconfig -o /boot/grub/grub.cfg
 
     else
       echo "Error with bootloader"
       exit
     fi
+
+    #Scan for other OS's & generate configuration file
+    pacman -S os-prober --noconfirm
+    grub-mkconfig -o /boot/grub/grub.cfg
+
   fi
 
 #End Script

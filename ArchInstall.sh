@@ -84,9 +84,9 @@ Manage_Partition()
 
   elif [ $filesystem == "mbr" ]; then
     echo -e "o\nw\n" | fdisk $disk_number
-    echo -e "n\np\n1\n\n+100mb\na\n\nw\n" | fdisk $disk_number
-    echo -e "n\np\n1\n\n+$swap_size\n\n\nw\n" | fdisk $disk_number
-    echo -e "n\np\n1\n\n\n\n\nw\n" | fdisk $disk_number
+    echo -e "n\np\n\n\n+256M\na\n\ny\nw\n" | fdisk $disk_number
+    echo -e "n\np\n\n\n+$swap_size\n\n\ny\nw\n" | fdisk $disk_number
+    echo -e "n\np\n\n\n\n\n\ny\nw\n" | fdisk $disk_number
 
     #inform the OS of partition table changes
     partprobe $disk_number

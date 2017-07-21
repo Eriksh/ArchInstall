@@ -53,55 +53,55 @@ Select_Keymap()
 #############################################
 Manage_Partition()
 {
-  disk_number=$1
+  disk=$1
   filesystem=$2
   swap_size=$3
+
   boot_partition=1
   swap_partition=2
   home_partition=3
 
   if [ $filesystem == "uefi" ]; then
     sgdisk -Z /dev/sda
-    sgdisk -n 0:0:+256M -t 0:ef00 -c 0:"boot" /dev/sda
-    sgdisk -n 0:0:+$swap_size -t 0:8200 -c 0:"swap" /dev/sda
-    sgdisk -n 0:0:0 -t 0:8300 -c 0:"home" /dev/sda
-    sgdisk -p /dev/sda
+    sgdisk -n 0:0:+256M -t 0:ef00 -c 0:"boot" $disk
+    sgdisk -n 0:0:+$swap_size -t 0:8200 -c 0:"swap" $disk
+    sgdisk -n 0:0:0 -t 0:8300 -c 0:"home" $disk
 
     #inform the OS of partition table changes
-    partprobe $disk_number
-    fdisk -l $disk_number
+    partprobe $disk
+    fdisk -l $disk
 
     #format partitions
-    mkfs.fat -F32 $disk_number$boot_partition
-    mkswap $disk_number$swap_partition
-    swapon $disk_number$swap_partition
-    mkfs.ext4 $disk_number$home_partition
+    mkfs.fat -F32 $disk$boot_partition
+    mkswap $disk$swap_partition
+    swapon $disk$swap_partition
+    mkfs.ext4 $disk$home_partition
 
     #mount filesystem
-    mount $disk_number$home_partition /mnt
+    mount $disk$home_partition /mnt
     mkdir /mnt/boot
-    mount $disk_number$boot_partition /mnt/boot
+    mount $disk$boot_partition /mnt/boot
 
   elif [ $filesystem == "mbr" ]; then
-    echo -e "o\nw\n" | fdisk $disk_number
-    echo -e "n\np\n\n\n+256M\na\n\ny\nw\n" | fdisk $disk_number
-    echo -e "n\np\n\n\n+$swap_size\n\n\ny\nw\n" | fdisk $disk_number
-    echo -e "n\np\n\n\n\n\n\ny\nw\n" | fdisk $disk_number
+    echo -e "o\nw\n" | fdisk $disk
+    echo -e "n\np\n\n\n+256M\na\n\ny\nw\n" | fdisk $disk
+    echo -e "n\np\n\n\n+$swap_size\n\n\ny\nw\n" | fdisk $disk
+    echo -e "n\np\n\n\n\n\n\ny\nw\n" | fdisk $disk
 
     #inform the OS of partition table changes
-    partprobe $disk_number
-    fdisk -l $disk_number
+    partprobe $disk
+    fdisk -l $disk
 
     #format partitions
-    mkfs.ext4 $disk_number$boot_partition
-    mkswap $disk_number$swap_partition
-    swapon $disk_number$swap_partition
-    mkfs.ext4 $disk_number$home_partition
+    mkfs.ext4 $disk$boot_partition
+    mkswap $disk$swap_partition
+    swapon $disk$swap_partition
+    mkfs.ext4 $disk$home_partition
 
     #mount filesystem
-    mount $disk_number$home_partition /mnt
+    mount $disk$home_partition /mnt
     mkdir /mnt/boot
-    mount $disk_number$boot_partition /mnt/boot
+    mount $disk$boot_partition /mnt/boot
 
   else
     echo
@@ -117,7 +117,7 @@ Manage_Partition()
 #############################################
 Install_OS()
 {
-  eval OS_packages="$1"
+  OS_packages="$1"
 
   #Install OS packages
   pacstrap /mnt $OS_packages --noconfirm
@@ -440,7 +440,7 @@ case $response in [yY][eE][sS]|[yY])
     timedatectl set-ntp true
     Select_Keymap $keymap
     Manage_Partition $disk $partition_filesystem $swap_partition_size
-    #Install_OS "\${os_packages}"
+    Install_OS "$os_packages"
     #OS_Name $os_name
     #OS_Locale $locale
     #OS_Timezone $timezone_region $timezone_city

@@ -234,10 +234,17 @@ cat <<EOF > /mnt/root/quickScript.sh
 
   #Select New Mirrorlist
   if [ "$protocol" == "all" ]; then
-      reflector --verbose --country $country --protocol http --protocol https --sort $rank_by --save /etc/pacman.d/mirrorlist
-
+    if [ "$country" == "all" ]; then
+      reflector --verbose --protocol http --protocol https --sort $rank_by --save /etc/pacman.d/mirrorlist
+    else
+      reflector --verbose --country "$country" --protocol http --protocol https --sort $rank_by --save /etc/pacman.d/mirrorlist
+    fi
   else
-      reflector --verbose --country $country --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
+    if [ "$country" == "all" ]; then
+      reflector --verbose --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
+    else
+      reflector --verbose --country "$country" --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
+    fi
   fi
 
   #Select Repository
@@ -265,10 +272,10 @@ cat <<EOF > /mnt/root/quickScript.sh
   fi
 
   #Reflector Mirrorlist Refresh Timer
-  if [ "$refresh_mirrorlist" == "none" ]; then
+  if [ "$refresh_list" == "none" ]; then
     echo "no reflector refresh"
 
-  elif [ "$refresh_mirrorlist" == "daily" ]; then
+  elif [ "$refresh_list" == "daily" ]; then
     touch /etc/systemd/system/reflector.timer
     echo "[Unit]
     Description=Update mirrorlist daily
@@ -312,7 +319,7 @@ cat <<EOF > /mnt/root/quickScript.sh
     #Enable Service
     systemctl enable reflector.timer
 
-  elif [ "$refresh_mirrorlist" == "monthly" ]; then
+  elif [ "$refresh_list" == "monthly" ]; then
     touch /etc/systemd/system/reflector.timer
     echo "[Unit]
     Description=Update mirrorlist daily

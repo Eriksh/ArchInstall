@@ -257,9 +257,10 @@ cat <<EOF > /mnt/root/quickScript.sh
 
   #Reflector Mirrorlist Refresh Timer
   if [ "refresh_mirrorlist" == "none" ]; then
-    echo "" >> /etc/systemd/system/reflector.timer
+    echo "no reflector refresh"
 
   elif [ "refresh_mirrorlist" == "daily" ]; then
+    touch /etc/systemd/system/reflector.timer
     echo "[Unit]
     Description=Update mirrorlist daily
     Requires=network-online.target
@@ -281,6 +282,7 @@ cat <<EOF > /mnt/root/quickScript.sh
     systemctl enable reflector.timer
 
   elif [ "refresh_mirrorlist" == "weekly" ]; then
+    touch /etc/systemd/system/reflector.timer
     echo "[Unit]
     Description=Update mirrorlist daily
     Requires=network-online.target
@@ -302,6 +304,7 @@ cat <<EOF > /mnt/root/quickScript.sh
     systemctl enable reflector.timer
 
   elif [ "refresh_mirrorlist" == "monthly" ]; then
+    touch /etc/systemd/system/reflector.timer
     echo "[Unit]
     Description=Update mirrorlist daily
     Requires=network-online.target

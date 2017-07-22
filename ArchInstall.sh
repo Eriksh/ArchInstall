@@ -216,7 +216,7 @@ Configure_Pacman()
 	protocol="$2"
 	rank_by="$3"
 	repository="$4"
-  refresh_mirrorlist="$5"
+  refresh_list="$5"
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
@@ -257,10 +257,10 @@ cat <<EOF > /mnt/root/quickScript.sh
   fi
 
   #Reflector Mirrorlist Refresh Timer
-  if [ "refresh_mirrorlist" == "none" ]; then
+  if [ "$refresh_mirrorlist" == "none" ]; then
     echo "no reflector refresh"
 
-  elif [ "refresh_mirrorlist" == "daily" ]; then
+  elif [ "$refresh_mirrorlist" == "daily" ]; then
     touch /etc/systemd/system/reflector.timer
     echo "[Unit]
     Description=Update mirrorlist daily
@@ -282,7 +282,7 @@ cat <<EOF > /mnt/root/quickScript.sh
     #Enable Service
     systemctl enable reflector.timer
 
-  elif [ "refresh_mirrorlist" == "weekly" ]; then
+  elif [ "$refresh_list" == "weekly" ]; then
     touch /etc/systemd/system/reflector.timer
     echo "[Unit]
     Description=Update mirrorlist daily
@@ -304,7 +304,7 @@ cat <<EOF > /mnt/root/quickScript.sh
     #Enable Service
     systemctl enable reflector.timer
 
-  elif [ "refresh_mirrorlist" == "monthly" ]; then
+  elif [ "$refresh_mirrorlist" == "monthly" ]; then
     touch /etc/systemd/system/reflector.timer
     echo "[Unit]
     Description=Update mirrorlist daily

@@ -31,11 +31,15 @@ refresh_mirrorlist="weekly"                   #none, daily, weekly, monthly
 new_root_password="yes"                       #request password for root account
 request_user_password="yes"                   #request passwords for user account
 usernames=( "erik" )                          #user accounts on system
-root_through_root="yes"                       #requires root password to run as root
+root_through_root="no"                        #requires root password to run as root
 root_through_users=( "erik" )                 #requires users password to run as root
 
 #Network
 connection_manager="networkmanager"           #connman, networkmanager, wicd
+
+#Virtualbox Installation
+installed_on_virtualbox="yes"                 #add virtualbox pakcages
+vb_sharefolder_location=""                    #location of share folder
 
 #Additional Packages
 additional_packages=""
@@ -426,7 +430,7 @@ cat <<EOF > /mnt/root/quickScript.sh
 
 #End Script
 echo "Users Added..."
-#rm /root/quickScript.sh
+rm /root/quickScript.sh
 exit
 EOF
 
@@ -459,7 +463,7 @@ cat <<EOF > /mnt/root/quickScript.sh
     systemctl enable 	wicd.service
 
   elif [ "$manager" == "none" ]; then
-    echo "No network manager was installed...""
+    echo "No network manager was installed..."
 
   else
     echo ""
@@ -582,9 +586,9 @@ case $response in [yY][eE][sS]|[yY])
     Root_Password $new_root_password
     Create_Users usernames[@] root_through_users[@] $request_user_password $root_through_passkey
     Network $connection_manager
-    Install_Bootloader $disk $partition_filesystem $cpu_architecture
-    Additional_Packages $additional_packages
-    Reboot
+    #Install_Bootloader $disk $partition_filesystem $cpu_architecture
+    #Additional_Packages $additional_packages
+    #Reboot
     ;;
     *)
     echo

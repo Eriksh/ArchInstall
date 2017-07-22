@@ -37,7 +37,7 @@ root_through_users=( "erik" )                 #requires users password to run as
 #Network
 connection_manager="networkmanager"           #connman, networkmanager, wicd
 
-#Virtualbox Installation
+#Virtualbox Installation (needs work)
 installed_on_virtualbox="yes"                 #add virtualbox pakcages
 vb_sharefolder_location=""                    #location of share folder
 
@@ -423,10 +423,10 @@ cat <<EOF > /mnt/root/quickScript.sh
 
   #Add users to sudo
   echo "" >> /etc/sudoers
-  echo "User privilage specification" >> /etc/sudoers
+  echo "#User privilage specification" >> /etc/sudoers
   for username in \${addToSudo[*]}; do
     #Add user to sudo
-    echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
+    echo "\$username  ALL=(ALL) ALL" >> /etc/sudoers
   done
 
   #Allow sudo through root password
@@ -593,9 +593,9 @@ case $response in [yY][eE][sS]|[yY])
     Root_Password $new_root_password
     Create_Users usernames[@] root_through_users[@] $request_user_password $root_through_passkey
     Network $connection_manager
-    #Install_Bootloader $disk $partition_filesystem $cpu_architecture
-    #Additional_Packages $additional_packages
-    #Reboot
+    Install_Bootloader $disk $partition_filesystem $cpu_architecture
+    Additional_Packages $additional_packages
+    Reboot
     ;;
     *)
     echo

@@ -28,8 +28,8 @@ repository="stable"                           #stable, testing
 new_root_password="yes"                       #request password for root account
 request_user_password="yes"                   #request passwords for user account
 usernames=( "erik" )                          #user accounts on system
-root_through_passkey="yes"                    #requires root password to run as root
-give_users_root=( "erik" )                    #requires users password to run as root
+root_through_root="yes"                       #requires root password to run as root
+root_through_users=( "erik" )                 #requires users password to run as root
 
 #bootloader
 bootloader="grub"
@@ -187,13 +187,13 @@ arch-chroot /mnt /root/quickScript.sh
 #############################################
 OS_Timezone()
 {
-  timezone_region=$1   #changed
-  timezone_city=$2     #changed
+  country=$1
+  region=$2
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
   #Set timezone
-  ln -s /usr/share/zoneinfo/$timezone_region/$timezone_city /etc/localtime
+  ln -s /usr/share/zoneinfo/$country/$region /etc/localtime
   hwclock --systohc
 
 #End Script
@@ -251,28 +251,29 @@ cat <<EOF > /mnt/root/quickScript.sh
   #Create users
   for username in \${usernames[*]}; do
 
-  #Create user
-  useradd -m -G wheel -s /bin/bash \$username
+    #Create user
+    useradd -m -G wheel -s /bin/bash \$username
 
-  #Create new user password
-  if [ "\$newUserPass" == "yes" ]; then
-    clear
-    echo "Please enter password for user \$username:"
-    for i in {1..5}; do passwd \$username && break || sleep 1; done
-  fi
-done
+    #Create new user password
+    if [ "\$newUserPass" == "yes" ]; then
+      clear
+      echo "Please enter password for user \$username:"
+      for i in {1..5}; do passwd \$username && break || sleep 1; done
+    fi
+  done
 
   #Add users to sudo
+  echo "" >> /etc/sudoers
+  echo "User privilage specification" >> /etc/sudoers
   for username in \${addToSudo[*]}; do
-
     #Add user to sudo
     echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
   done
 
   #Allow sudo through root password
   if [ "\$rootbyroot" == "yes" ]; then
-    sed -i '/"Defaults targetpw"/s/^#//g' /etc/sudoers
-    sed -i '/"ALL ALL=(ALL) ALL"/s/^#//g' /etc/sudoers
+    sed -i '/Defaults targetpw */s/^#//g' /etc/sudoers
+    sed -i '/ALL ALL=(ALL) ALL */s/^#//g' /etc/sudoers
   fi
 
 #End Script
@@ -461,7 +462,7 @@ case $response in [yY][eE][sS]|[yY])
     OS_Locale $locale $keymap
     OS_Timezone $timezone_country $timezone_region
     Root_Password $new_root_password
-    Create_Users usernames[@] sudo_update_users[@] $request_user_password $root_through_passkey
+    Create_Users usernames[@] root_through_users[@] $request_user_password $root_through_passkey
     #Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
     #Install_Bootloader $disk $bootloader $partition_filesystem
     #Additional_Packages $additional_packages

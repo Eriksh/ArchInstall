@@ -24,7 +24,7 @@ mirrorlist_country="all"                      #all, 'United States', ...
 mirrorlist_protocol="https"                   #http, https
 rank_mirrorlist_by="rate"                     #rate, ...
 repository="stable"                           #stable, testing
-refresh mirrorlist="weekly"                   #none, daily, weekly, monthly
+refresh_mirrorlist="weekly"                   #none, daily, weekly, monthly
 
 #User Account Information
 new_root_password="yes"                       #request password for root account
@@ -221,6 +221,7 @@ Configure_Pacman()
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
   #Configure Pacman
+  pacman -Syy
   pacman -S reflector --noconfirm
 
   #Select New Mirrorlist
@@ -524,7 +525,7 @@ case $response in [yY][eE][sS]|[yY])
     OS_Name $os_name
     OS_Locale $locale $keymap
     OS_Timezone $timezone_country $timezone_region
-    Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository $refresh mirrorlist
+    Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository $refresh_mirrorlist
     Root_Password $new_root_password
     Create_Users usernames[@] root_through_users[@] $request_user_password $root_through_passkey
     #Install_Bootloader $disk $partition_filesystem

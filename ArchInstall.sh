@@ -207,86 +207,6 @@ chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 }
 
-# NEW ROOT PASSWORD
-#############################################
-Root_Password()
-{
-  new_root_password=$1
-
-#Create File
-cat <<EOF > /mnt/root/quickScript.sh
-  #Create new root password
-  if [ "$new_root_password" == "yes" ]; then
-    clear
-    echo "Please enter root password:"
-    for i in {1..5}; do passwd root && break || sleep 1; done
-  fi
-
-#End Script
-echo "Updated Root Password..."
-rm /root/quickScript.sh
-exit
-EOF
-
-#Run File
-chmod +x /mnt/root/quickScript.sh
-arch-chroot /mnt /root/quickScript.sh
-}
-
-# CREATE USERS
-#############################################
-Create_Users()
-{
-
-cat <<EOF > /mnt/root/quickScript.sh
-  # Create Users
-  usernames=(${!1})
-  addToSudo=(${!2})
-  newUserPass=$3
-  rootbyroot=$4
-
-  #Install Sudo
-  pacman -S sudo --noconfirm
-
-  #Create users
-  for username in \${usernames[*]}; do
-
-    #Create user
-    useradd -m -G wheel -s /bin/bash \$username
-
-    #Create new user password
-    if [ "\$newUserPass" == "yes" ]; then
-      clear
-      echo "Please enter password for user \$username:"
-      for i in {1..5}; do passwd \$username && break || sleep 1; done
-    fi
-  done
-
-  #Add users to sudo
-  echo "" >> /etc/sudoers
-  echo "User privilage specification" >> /etc/sudoers
-  for username in \${addToSudo[*]}; do
-    #Add user to sudo
-    echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
-  done
-
-  #Allow sudo through root password
-  if [ "\$rootbyroot" == "yes" ]; then
-    sed -i '/Defaults targetpw */s/^#//g' /etc/sudoers
-    sed -i '/ALL ALL=(ALL) ALL */s/^#//g' /etc/sudoers
-  fi
-
-#End Script
-echo "Users Added..."
-#rm /root/quickScript.sh
-exit
-EOF
-
-#Run File
-chmod +x /mnt/root/quickScript.sh
-arch-chroot /mnt /root/quickScript.sh
-}
-
 # CONFIGURE PACMAN
 #############################################
 Configure_Pacman()
@@ -414,7 +334,6 @@ cat <<EOF > /mnt/root/quickScript.sh
   pacman-key --refresh-key
   pacman-key --populate archlinux
   pacman -Syy
-  pacman -Syu --noconfirm
   echo "Configured Pacman..."
 
 #End Script
@@ -428,6 +347,85 @@ chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 }
 
+# NEW ROOT PASSWORD
+#############################################
+Root_Password()
+{
+  new_root_password=$1
+
+#Create File
+cat <<EOF > /mnt/root/quickScript.sh
+  #Create new root password
+  if [ "$new_root_password" == "yes" ]; then
+    clear
+    echo "Please enter root password:"
+    for i in {1..5}; do passwd root && break || sleep 1; done
+  fi
+
+#End Script
+echo "Updated Root Password..."
+rm /root/quickScript.sh
+exit
+EOF
+
+#Run File
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
+}
+
+# CREATE USERS
+#############################################
+Create_Users()
+{
+
+cat <<EOF > /mnt/root/quickScript.sh
+  # Create Users
+  usernames=(${!1})
+  addToSudo=(${!2})
+  newUserPass=$3
+  rootbyroot=$4
+
+  #Install Sudo
+  pacman -S sudo --noconfirm
+
+  #Create users
+  for username in \${usernames[*]}; do
+
+    #Create user
+    useradd -m -G wheel -s /bin/bash \$username
+
+    #Create new user password
+    if [ "\$newUserPass" == "yes" ]; then
+      clear
+      echo "Please enter password for user \$username:"
+      for i in {1..5}; do passwd \$username && break || sleep 1; done
+    fi
+  done
+
+  #Add users to sudo
+  echo "" >> /etc/sudoers
+  echo "User privilage specification" >> /etc/sudoers
+  for username in \${addToSudo[*]}; do
+    #Add user to sudo
+    echo "\$username  ALL=(ALL:ALL) ALL" >> /etc/sudoers
+  done
+
+  #Allow sudo through root password
+  if [ "\$rootbyroot" == "yes" ]; then
+    sed -i '/Defaults targetpw */s/^#//g' /etc/sudoers
+    sed -i '/ALL ALL=(ALL) ALL */s/^#//g' /etc/sudoers
+  fi
+
+#End Script
+echo "Users Added..."
+#rm /root/quickScript.sh
+exit
+EOF
+
+#Run File
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
+}
 
 # INSTALL BOOTLOADER
 #############################################
@@ -523,10 +521,9 @@ case $response in [yY][eE][sS]|[yY])
     OS_Name $os_name
     OS_Locale $locale $keymap
     OS_Timezone $timezone_country $timezone_region
-    mkinitcpio -p linux
+    Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository $refresh mirrorlist
     Root_Password $new_root_password
     Create_Users usernames[@] root_through_users[@] $request_user_password $root_through_passkey
-    Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository $refresh mirrorlist
     #Install_Bootloader $disk $partition_filesystem
     #Additional_Packages $additional_packages
     #Reboot

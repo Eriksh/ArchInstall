@@ -4,6 +4,7 @@
 # Installation Options
 #############################################################
 keymap="us"                                   #us, NSI-dvorak, amiga-de, ...
+cpu_architecture="amd"                        #amd, intel
 
 #Partitions Information
 disk="/dev/sda"
@@ -32,6 +33,9 @@ request_user_password="yes"                   #request passwords for user accoun
 usernames=( "erik" )                          #user accounts on system
 root_through_root="yes"                       #requires root password to run as root
 root_through_users=( "erik" )                 #requires users password to run as root
+
+#Network
+connection_manager="networkmanager"           #connman, networkmanager, wicd
 
 #Additional Packages
 additional_packages=""
@@ -431,12 +435,56 @@ chmod +x /mnt/root/quickScript.sh
 arch-chroot /mnt /root/quickScript.sh
 }
 
+# SET NETWORK
+#############################################
+Network()
+{
+  manager=$1
+
+#Create File
+cat <<EOF > /mnt/root/quickScript.sh
+  #Install Bootloader
+  pacman -S iw wpa_supplicant dialog --noconfirm
+
+  if [ "$manager" == "connman" ]; then
+    pacman -S connman --noconfirm
+    systemctl enable connman.service
+
+  elif [ "$manager" == "networkmanager" ]; then
+    pacman -S networkmanager --noconfirm
+    systemctl enable NetworkManager.service
+
+  elif [ "$manager" == "wicd" ]; then
+    pacman -S wicd --noconfirm
+    systemctl enable 	wicd.service
+
+  elif [ "$manager" == "none" ]; then
+    echo "No network manager was installed...""
+
+  else
+    echo ""
+    echo "Unable to determine selected network manager"
+    exit
+  fi
+
+#End Script
+echo "Installed Network Manager..."
+rm /root/quickScript.sh
+exit
+EOF
+
+#Run File
+chmod +x /mnt/root/quickScript.sh
+arch-chroot /mnt /root/quickScript.sh
+}
+
 # INSTALL BOOTLOADER
 #############################################
 Install_Bootloader()
 {
   disk=$1
   filesystem=$2
+  architecture=$3
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
@@ -455,13 +503,18 @@ cat <<EOF > /mnt/root/quickScript.sh
     exit
   fi
 
+  #If using Intel processor download
+  if [ "$architecture" == "intel" ]; then
+    pacman -S intel-ucode --noconfirm
+  fi
+
   #Scan for other OS's & generate configuration file
   pacman -S os-prober --noconfirm
   grub-mkconfig -o /boot/grub/grub.cfg
 
 #End Script
 echo "Installed Bootloader..."
-#rm /root/quickScript.sh
+rm /root/quickScript.sh
 exit
 EOF
 
@@ -528,9 +581,10 @@ case $response in [yY][eE][sS]|[yY])
     Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository $refresh_mirrorlist
     Root_Password $new_root_password
     Create_Users usernames[@] root_through_users[@] $request_user_password $root_through_passkey
-    #Install_Bootloader $disk $partition_filesystem
-    #Additional_Packages $additional_packages
-    #Reboot
+    Network $connection_manager
+    Install_Bootloader $disk $partition_filesystem $cpu_architecture
+    Additional_Packages $additional_packages
+    Reboot
     ;;
     *)
     echo

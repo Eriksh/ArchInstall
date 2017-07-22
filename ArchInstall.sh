@@ -24,15 +24,14 @@ mirrorlist_country="all"                      #all, 'United States', ...
 mirrorlist_protocol="https"                   #http, https
 rank_mirrorlist_by="rate"                     #rate, ...
 repository="stable"                           #stable, testing
+refresh mirrorlist="weekly"                   #none, daily, weekly, monthly
 
+#User Account Information
 new_root_password="yes"                       #request password for root account
 request_user_password="yes"                   #request passwords for user account
 usernames=( "erik" )                          #user accounts on system
 root_through_root="yes"                       #requires root password to run as root
 root_through_users=( "erik" )                 #requires users password to run as root
-
-#bootloader
-bootloader="grub"
 
 #Additional Packages
 additional_packages=""
@@ -193,6 +192,7 @@ OS_Timezone()
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
   #Set timezone
+  rm /etc/localtime
   ln -s /usr/share/zoneinfo/$country/$region /etc/localtime
   hwclock --systohc
 
@@ -296,6 +296,7 @@ Configure_Pacman()
 	protocol="$2"
 	rank_by="$3"
 	repository="$4"
+  refresh_mirrorlist="$5"
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
@@ -304,18 +305,10 @@ cat <<EOF > /mnt/root/quickScript.sh
 
   #Select New Mirrorlist
   if [ "$protocol" == "all" ]; then
-    if [ "$country" == "all" ]; then
-      reflector --verbose --protocol http --protocol https --sort $rank_by --save /etc/pacman.d/mirrorlist
-    else
-      reflector --verbose --country "$country" --protocol http --protocol https --sort $rank_by --save /etc/pacman.d/mirrorlist
-    fi
+      reflector --verbose --country $country --protocol http --protocol https --sort $rank_by --save /etc/pacman.d/mirrorlist
 
   else
-    if [ "$country" == "all" ]; then
-      reflector --verbose --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
-    else
-      reflector --verbose --country "$country" --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
-    fi
+      reflector --verbose --country $country --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
   fi
 
   #Select Repository
@@ -340,7 +333,80 @@ cat <<EOF > /mnt/root/quickScript.sh
   else
     echo "Invalid repository selected: $repository"
     exit
+  fi
 
+  #Reflector Mirrorlist Refresh Timer
+  if [ "refresh_mirrorlist" == "none" ]; then
+    echo "" >> /etc/systemd/system/reflector.timer
+
+  elif [ "refresh_mirrorlist" == "daily" ]; then
+    echo "[Unit]
+    Description=Update mirrorlist daily
+    Requires=network-online.target
+    After=network-online.target
+
+    [Timer]
+    OnCalendar=daily
+    RandomizedDelaySec=5h
+    Persistent=true
+
+    [Service]
+    Type=oneshot
+    ExecStart=/usr/bin/reflector --country $country --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
+
+    [Install]
+    WantedBy=timers.target" >> /etc/systemd/system/reflector.timer
+
+    #Enable Service
+    systemctl enable reflector.timer
+
+  elif [ "refresh_mirrorlist" == "weekly" ]; then
+    echo "[Unit]
+    Description=Update mirrorlist daily
+    Requires=network-online.target
+    After=network-online.target
+
+    [Timer]
+    OnCalendar=weekly
+    RandomizedDelaySec=12h
+    Persistent=true
+
+    [Service]
+    Type=oneshot
+    ExecStart=/usr/bin/reflector --country $country --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
+
+    [Install]
+    WantedBy=timers.target" >> /etc/systemd/system/reflector.timer
+
+    #Enable Service
+    systemctl enable reflector.timer
+
+  elif [ "refresh_mirrorlist" == "monthly" ]; then
+    echo "[Unit]
+    Description=Update mirrorlist daily
+    Requires=network-online.target
+    After=network-online.target
+
+    [Timer]
+    OnCalendar=daily
+    RandomizedDelaySec=5h
+    Persistent=true
+
+    [Service]
+    Type=oneshot
+    ExecStart=/usr/bin/reflector --country $country --protocol $protocol --sort $rank_by --save /etc/pacman.d/mirrorlist
+
+    [Install]
+    WantedBy=timers.target" >> /etc/systemd/system/reflector.timer
+
+    #Enable Service
+    systemctl enable reflector.timer
+
+  else
+    echo
+    echo "Invalid partition type selected"
+    echo "Installation was canceled"
+    exit
   fi
 
   #Refresh and repopulate pacman
@@ -368,32 +434,28 @@ arch-chroot /mnt /root/quickScript.sh
 Install_Bootloader()
 {
   disk=$1
-  bootloader=$2
-  filesystem=$3
+  filesystem=$2
 
 #Create File
 cat <<EOF > /mnt/root/quickScript.sh
   #Install Bootloader
 
-  if [ "$bootloader" == "grub" ]; then
-    if [ "$filesystem" == "mbr" ]; then
-      pacman -S grub --noconfirm
-      grub-install --recheck $disk
+  if [ "$filesystem" == "mbr" ]; then
+    pacman -S grub --noconfirm
+    grub-install --recheck $disk
 
-    elif [ "$filesystem" == "uefi" ]; then
-      pacman -S grub efibootmgr --noconfirm
-      grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=grub
+  elif [ "$filesystem" == "uefi" ]; then
+    pacman -S grub efibootmgr --noconfirm
+    grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=grub
 
-    else
-      echo "Error with bootloader"
-      exit
-    fi
-
-    #Scan for other OS's & generate configuration file
-    pacman -S os-prober --noconfirm
-    grub-mkconfig -o /boot/grub/grub.cfg
-
+  else
+    echo "Error with bootloader"
+    exit
   fi
+
+  #Scan for other OS's & generate configuration file
+  pacman -S os-prober --noconfirm
+  grub-mkconfig -o /boot/grub/grub.cfg
 
 #End Script
 echo "Installed Bootloader..."
@@ -461,10 +523,11 @@ case $response in [yY][eE][sS]|[yY])
     OS_Name $os_name
     OS_Locale $locale $keymap
     OS_Timezone $timezone_country $timezone_region
+    mkinitcpio -p linux
     Root_Password $new_root_password
     Create_Users usernames[@] root_through_users[@] $request_user_password $root_through_passkey
-    #Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository
-    #Install_Bootloader $disk $bootloader $partition_filesystem
+    Configure_Pacman $mirrorlist_country $mirrorlist_protocol $rank_mirrorlist_by $repository $refresh mirrorlist
+    #Install_Bootloader $disk $partition_filesystem
     #Additional_Packages $additional_packages
     #Reboot
     ;;
